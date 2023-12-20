@@ -70,7 +70,7 @@ async function processMessage(msg,roomid) {
     // 提取并下载图片
     const imageRegex = /!\[image]\((.*?)\)/;
     const matches = cleanedMsg.matchAll(imageRegex);
-
+    console.log(matches);
     for (const match of matches) {
         const imageUrl = match[1];
         // const imageResponse = await axios({
