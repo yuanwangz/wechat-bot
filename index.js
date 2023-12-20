@@ -73,23 +73,23 @@ async function processMessage(msg,roomid) {
 
     for (const match of matches) {
         const imageUrl = match[1];
-        const imageResponse = await axios({
-            method: 'get',
-            url: imageUrl,
-            responseType: 'stream'
-        });
-
-        const downloadPath = '/home/app/images/';
-        const fileName = path.join(downloadPath, path.basename(imageUrl));
-        const writer = fs.createWriteStream(fileName);
-
-        imageResponse.data.pipe(writer);
-
-        await new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-        });
-        ws.send(send_pic_msg(roomid, fileName));
+        // const imageResponse = await axios({
+        //     method: 'get',
+        //     url: imageUrl,
+        //     responseType: 'stream'
+        // });
+        //
+        // const downloadPath = '/home/app/images/';
+        // const fileName = path.join(downloadPath, path.basename(imageUrl));
+        // const writer = fs.createWriteStream(fileName);
+        //
+        // imageResponse.data.pipe(writer);
+        //
+        // await new Promise((resolve, reject) => {
+        //     writer.on('finish', resolve);
+        //     writer.on('error', reject);
+        // });
+        ws.send(send_pic_msg(roomid, imageUrl));
     }
 
     return cleanedMsg;
