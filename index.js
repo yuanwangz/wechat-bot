@@ -26,7 +26,9 @@ import {
     get_member_nick
 } from "./server/client.js"
 
-
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 const SERVER_HOST = process.env.SERVER_HOST
 const ws = new WebSocket(`ws://${SERVER_HOST}`);
 const url = `http://${SERVER_HOST}`;
@@ -60,6 +62,38 @@ ws.on('open', async function open() {
     // ws.send(await get_personal_info1());
 
 });
+
+async function processMessage(msg,roomid) {
+    // 移除包含特定关键词的Markdown代码块
+    const cleanedMsg = msg.replace(/```[\s\S]*?(prompt|search\(|mclick\()[\s\S]*?```/g, '');
+
+    // 提取并下载图片
+    const imageRegex = /!\[image]\((.*?)\)/;
+    const matches = cleanedMsg.matchAll(imageRegex);
+
+    for (const match of matches) {
+        const imageUrl = match[1];
+        const imageResponse = await axios({
+            method: 'get',
+            url: imageUrl,
+            responseType: 'stream'
+        });
+
+        const downloadPath = '/home/app/images/';
+        const fileName = path.join(downloadPath, path.basename(imageUrl));
+        const writer = fs.createWriteStream(fileName);
+
+        imageResponse.data.pipe(writer);
+
+        await new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
+        ws.send(send_pic_msg(roomid, fileName));
+    }
+
+    return cleanedMsg;
+}
 
 async function send_txt_msg1(wxid, content) {
     const jpara = {
@@ -146,14 +180,6 @@ ws.on('message', async (data) => {
             const nick = msgdata.nick
             const msgcontent = j.content
             console.log({ userid, nick, roomid, msgcontent })
-            if (j.content.startsWith('/c')) {
-                const raw_msg = j.content.replace('/c', '').trim()
-                // userid, nick, roomid, msgcontent
-                const msg = await chatgptReply(roomid, userid, nick, raw_msg)
-                //    await  send_txt_msg1(j.wxid, j.content)
-                const new_msg = await containsTextFileLine(msg)
-                ws.send(send_txt_msg(roomid, new_msg));
-            }
             if(j.content.startsWith('/s')){
                 const raw_msg = j.content.replace('/s', '').trim()
                 // userid, nick, roomid, msgcontent
@@ -161,6 +187,16 @@ ws.on('message', async (data) => {
                 //    await  send_txt_msg1(j.wxid, j.content)
                 // const new_msg = await containsTextFileLine(msg)
                 ws.send(send_txt_msg(roomid, msg));
+            }else{
+                const raw_msg = j.content.replace('/c', '').trim()
+                // userid, nick, roomid, msgcontent
+                const msg = await chatgptReply(roomid, userid, nick, raw_msg)
+                //    await  send_txt_msg1(j.wxid, j.content)
+                // const new_msg = await containsTextFileLine(msg)
+                const new_msg = await processMessage(msg,roomid);
+                if(new_msg != ''){
+                    ws.send(send_txt_msg(roomid, new_msg));
+                }
             }
             break;
         case HEART_BEAT:

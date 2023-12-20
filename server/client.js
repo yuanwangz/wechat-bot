@@ -155,13 +155,13 @@ export const send_at_msg = (roomid, wxid, content, nickname = '') => {
     return s;
 }
 
-export const send_pic_msg = () => {
+export const send_pic_msg = (wxid, content) => {
     const j = {
         id: getid(),
         type: PIC_MSG,
-        wxid: '22693709597@chatroom',
+        wxid: wxid,
         roomid: 'null',
-        content: "img",
+        content: content,
         nickname: "null",
         ext: 'null'
         //wxid:'22428457414@chatroom'
