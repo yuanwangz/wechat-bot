@@ -26,9 +26,9 @@ import {
     get_member_nick
 } from "./server/client.js"
 
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+// const axios = require('axios');
+// const fs = require('fs');
+// const path = require('path');
 const SERVER_HOST = process.env.SERVER_HOST
 const ws = new WebSocket(`ws://${SERVER_HOST}`);
 const url = `http://${SERVER_HOST}`;
