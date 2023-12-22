@@ -65,33 +65,24 @@ ws.on('open', async function open() {
 
 async function processMessage(msg,roomid) {
     // 移除包含特定关键词的Markdown代码块
-    const cleanedMsg = msg.replace(/```[\s\S]*?(prompt|search\(|mclick\()[\s\S]*?```/g, '');
+    let cleanedMsg = msg.replace(/```[\s\S]*?(prompt|search\(|mclick\()[\s\S]*?```/g, '');
+
 
     // 提取并下载图片
-    const imageRegex = /!\[image]\((.*?)\)/;
+    const imageRegex = /!\[image]\((.*?)\)/g;
     const matches = cleanedMsg.matchAll(imageRegex);
-    console.log(matches);
     for (const match of matches) {
         const imageUrl = match[1];
-        // const imageResponse = await axios({
-        //     method: 'get',
-        //     url: imageUrl,
-        //     responseType: 'stream'
-        // });
-        //
-        // const downloadPath = '/home/app/images/';
-        // const fileName = path.join(downloadPath, path.basename(imageUrl));
-        // const writer = fs.createWriteStream(fileName);
-        //
-        // imageResponse.data.pipe(writer);
-        //
-        // await new Promise((resolve, reject) => {
-        //     writer.on('finish', resolve);
-        //     writer.on('error', reject);
-        // });
+        console.log(imageUrl);
+        // 图片下载和处理的代码
         ws.send(send_pic_msg(roomid, imageUrl));
     }
+    // 移除包含 ![image] 的行和前后的空白行
+    cleanedMsg = cleanedMsg.replace(/^\s*.*\!\[image\].*\n/gm, '');
 
+    // 移除包含 [下载链接] 的行和前后的空白行
+    cleanedMsg = cleanedMsg.replace(/^\s*.*\[下载链接\].*\n/gm, '');
+    console.log(cleanedMsg);
     return cleanedMsg;
 }
 
