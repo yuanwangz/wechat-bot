@@ -108,7 +108,7 @@ async function processMessage(msg, roomid) {
         
         // 图片下载和处理的代码
         const filename = 'image_' + new Date().getTime() + '.jpg';
-        const imagePath = path.resolve('/app/upload', filename);
+        const imagePath = path.resolve('upload', filename);
 
         try {
             await downloadImage(imageUrl, imagePath);
