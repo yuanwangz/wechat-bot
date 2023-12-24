@@ -156,6 +156,7 @@ export const send_at_msg = (roomid, wxid, content, nickname = '') => {
 }
 
 export const send_pic_msg = (wxid, content) => {
+	console.log("发送图片："+content);
     const j = {
         id: getid(),
         type: PIC_MSG,
