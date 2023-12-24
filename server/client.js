@@ -173,16 +173,6 @@ export const send_pic_msg = (wxid, content) => {
     //console.log(s);
     return s;
 }
-export const get_personal_detail = () => {
-    /*const j={
-      id:getid(),
-      type:PERSONAL_DETAIL,
-      content:'op:personal detail',
-      wxid:'zhanghua_cd'
-    };*/
-    const s = JSON.stringify(j);
-    return s;
-}
 /**
  * send_txt_msg : 发送消息给好友
  * 
@@ -326,6 +316,33 @@ export const get_member_nick = async (user_id, roomid) => {
     {
 
         url: url + '/api/getmembernick',
+        body: {
+            para: jpara
+        },
+        json: true
+    };
+    const data = await rp(options);
+    //const j = JSON.parse(data);
+
+    //console.log(j.id); 
+    //console.log(j.status);
+    return data;
+}
+
+export const get_personal_detail = async (user_id) => {
+
+    const jpara = {
+        id: getid(),
+        type: PERSONAL_DETAIL,
+        wxid: user_id,
+        content: 'op:personal detail',
+        //wxid:'22428457414@chatroom'
+
+    };
+    const options =
+    {
+
+        url: url + '/api/get_personal_detail',
         body: {
             para: jpara
         },

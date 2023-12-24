@@ -56,7 +56,7 @@ async function chatgptReply(wxid, id, nick, rawmsg) {
           conversationPool.set(id, newMessage);
         }
         conversationPool.get(id).messages.push(response);
-        return `${rawmsg} \n ------------------------ \n${response.content}`;
+        return `${response.content}`;
       } else {
         console.log('Invalid response:', raw_response);
         response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
@@ -71,7 +71,6 @@ async function chatgptReply(wxid, id, nick, rawmsg) {
       }
       console.error(e);
     }
-    response = `${rawmsg} \n ------------------------ \n` + response;
 
     return response
   }

@@ -34,6 +34,7 @@ import {
 // const fs = require('fs');
 // const path = require('path');
 const SERVER_HOST = process.env.SERVER_HOST
+let BOT_NICKNAME = ''
 const ws = new WebSocket(`ws://${SERVER_HOST}`);
 const url = `http://${SERVER_HOST}`;
 const HEART_BEAT = 5005;
@@ -202,6 +203,8 @@ ws.on('message', async (data) => {
             break;
         case PERSONAL_INFO:
             console.log(j);
+			const bot_info = JSON.parse(j.content);
+			BOT_NICKNAME = bot_info.wx_name;
             break;
         case TXT_MSG:
             // console.log(j);
@@ -228,23 +231,40 @@ ws.on('message', async (data) => {
             const nick = msgdata.nick
             const msgcontent = j.content
             console.log({ userid, nick, roomid, msgcontent })
-            if(j.content.startsWith('/s')){
-                const raw_msg = j.content.replace('/s', '').trim()
-                // userid, nick, roomid, msgcontent
-                const msg = await sparkReply(roomid, userid, nick, raw_msg)
-                //    await  send_txt_msg1(j.wxid, j.content)
-                // const new_msg = await containsTextFileLine(msg)
-                ws.send(send_txt_msg(roomid, msg));
-            }else{
-                // userid, nick, roomid, msgcontent
-                const msg = await chatgptReply(roomid, userid, nick, msgcontent)
-                //    await  send_txt_msg1(j.wxid, j.content)
-                // const new_msg = await containsTextFileLine(msg)
-                const new_msg = await processMessage(msg,roomid);
-                if(new_msg != ''){
-                    ws.send(send_txt_msg(roomid, new_msg));
-                }
-            }
+			if(roomid == userid){
+				if(j.content.startsWith('/s')){
+				    const raw_msg = j.content.replace('/s', '').trim()
+				    // userid, nick, roomid, msgcontent
+				    const msg = await sparkReply(roomid, userid, nick, raw_msg)
+				    //    await  send_txt_msg1(j.wxid, j.content)
+				    // const new_msg = await containsTextFileLine(msg)
+				    ws.send(send_txt_msg(roomid, msg));
+				}else{
+				    // userid, nick, roomid, msgcontent
+				    const msg = await chatgptReply(roomid, userid, nick, msgcontent)
+				    //    await  send_txt_msg1(j.wxid, j.content)
+				    // const new_msg = await containsTextFileLine(msg)
+				    const new_msg = await processMessage(msg,roomid);
+				    if(new_msg != ''){
+				        ws.send(send_txt_msg(roomid, new_msg));
+				    }
+				}
+				
+			}else{
+				const atplx='@'+BOT_NICKNAME+'';
+				if(j.content.startsWith(atplx)){
+					const raw_msg = j.content.replace(atplx, '').trim()
+				    // userid, nick, roomid, msgcontent
+				    const msg = await chatgptReply(roomid, userid, nick, raw_msg)
+				    //    await  send_txt_msg1(j.wxid, j.content)
+				    // const new_msg = await containsTextFileLine(msg)
+				    let new_msg = await processMessage(msg,roomid);
+				    if(new_msg != ''){
+						new_msg = `${raw_msg} \n ------------------------ \n`+new_msg;
+				        ws.send(send_txt_msg(roomid, new_msg));
+				    }
+				}
+			}
             break;
         case HEART_BEAT:
             heartbeat(j);
