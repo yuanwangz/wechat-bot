@@ -162,7 +162,7 @@ export const send_pic_msg = (wxid, content) => {
         type: PIC_MSG,
         wxid: wxid,
         roomid: 'null',
-        content: content,
+        content: "/home/app/upload/"+content,
         nickname: "null",
         ext: 'null'
         //wxid:'22428457414@chatroom'
