@@ -122,7 +122,7 @@ async function processMessage(msg, roomid) {
 						console.log('本地文件已删除:', imagePath);
 					}
 				});
-			}, 60000);
+			}, 10000);
         } catch (error) {
             console.error('Error occurred while processing image:', error);
         }
