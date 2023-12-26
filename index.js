@@ -112,7 +112,7 @@ async function processMessage(msg, roomid) {
 
         try {
             await downloadImage(imageUrl, imagePath);
-            ws.send(send_pic_msg(roomid, imagePath));
+            ws.send(send_pic_msg(roomid, filename));
 			// 延迟1分钟后删除文件
 			setTimeout(() => {
 				fs.unlink(imagePath, (err) => {
