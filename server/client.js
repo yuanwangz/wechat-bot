@@ -13,6 +13,7 @@ import rp from 'request-promise'
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config()
 const SERVER_HOST = process.env.SERVER_HOST
+const FILE_DIR = process.env.FILE_DIR
 
 const ws = new WebSocket(`ws://${SERVER_HOST}`);
 const url = `http://${SERVER_HOST}`;
@@ -162,7 +163,7 @@ export const send_pic_msg = (wxid, content) => {
         type: PIC_MSG,
         wxid: wxid,
         roomid: 'null',
-        content: "/home/app/upload/"+content,
+        content: FILE_DIR+content,
         nickname: "null",
         ext: 'null'
         //wxid:'22428457414@chatroom'
