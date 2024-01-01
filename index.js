@@ -260,8 +260,9 @@ ws.on('message', async (data) => {
 				    // const new_msg = await containsTextFileLine(msg)
 				    let new_msg = await processMessage(msg,roomid);
 				    if(new_msg != ''){
-						new_msg = `${raw_msg} \n ------------------------ \n`+new_msg;
-				        ws.send(send_txt_msg(roomid, new_msg));
+						// new_msg = `${raw_msg} \n ------------------------ \n`+new_msg;
+				        // ws.send(send_txt_msg(roomid, new_msg));
+                        ws.send(send_at_msg(roomid,userid,new_msg,nick));
 				    }
 				}
 			}
