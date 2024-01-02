@@ -117,14 +117,22 @@ async function processMessage(msg, roomid) {
     cleanedMsg = cleanedMsg.replace(resultMarkdownRegex, '');
 
     // 提取图片链接
-    const imageRegex = /!\[image]\((.*?)\)/g;
+    const imageRegex = /\[下载[^\]]*\]\((.*?)\)/g;
     const matches = [...cleanedMsg.matchAll(imageRegex)];
     if (matches.length > 0) {
         const imageUrl = matches[0][1]; // 取第一个匹配项的URL
         console.log(imageUrl);
-        
+
         // 图片下载和处理的代码
-        const filename = 'image_' + new Date().getTime() + '.jpg';
+        let filename = imageUrl.split('/').pop();
+        // 定义一个图片类型的扩展名数组
+        const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff'];
+        const fileExtension = filename.split('.').pop().toLowerCase();
+
+        if (imageExtensions.includes(fileExtension)) {
+            filename = filename.replace(/\.[^/.]+$/, '.jpg');
+        }
+
         const imagePath = path.resolve('upload', filename);
 
         try {
@@ -147,6 +155,8 @@ async function processMessage(msg, roomid) {
 
     // 移除包含 ![image] 的行和前后的空白行
     cleanedMsg = cleanedMsg.replace(/^\s*.*\!\[image\].*\n/gm, '');
+
+    cleanedMsg = cleanedMsg.replace(/请点击[^\n]*\n?\s*\[下载[^\]]*\]\(.*?\)\s*\n?/gm, '');
 
     // 移除包含 [下载链接] 的行和前后的空白行
     cleanedMsg = cleanedMsg.replace(/^\s*.*\[下载链接\].*\n/gm, '');
