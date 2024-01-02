@@ -161,7 +161,8 @@ async function processMessage(msg, roomid) {
     // 移除包含 ![image] 的行和前后的空白行
     cleanedMsg = cleanedMsg.replace(/^\s*.*\!\[image\].*\n/gm, '');
 
-    cleanedMsg = cleanedMsg.replace(/请点击[^\n]*\n?\s*\[下载[^\]]*\]\(.*?\)\s*\n?/gm, '');
+    //cleanedMsg = cleanedMsg.replace(/请点击[^\n]*\n?\s*\[下载[^\]]*\]\(.*?\)\s*\n?/gm, '');
+	cleanedMsg = cleanedMsg.replace(/[^\。\n]*\[下载[^\]]*\]\(.*?\)[^\。\n]*\。/gm, '');
 
     // 移除包含 [下载链接] 的行和前后的空白行
     cleanedMsg = cleanedMsg.replace(/^\s*.*\[下载链接\].*\n/gm, '');
