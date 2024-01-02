@@ -84,6 +84,19 @@ async function downloadImage(url, targetPath) {
     }
 }
 
+function replaceLongUrlsWithDomain(inputString) {
+    const urlRegex = /\bhttps?:\/\/[^\s()<>]+(?:\([\w.]+\))?[^\s()<>]*/g;
+    return inputString.replace(urlRegex, url => {
+        // 如果网址长度小于或等于 80 个字符，则不处理
+        if (url.length <= 80) return "来源：" + url + " ";
+
+        // 提取网址的协议和主域名
+        const domainMatch = url.match(/^(https?:\/\/[^\/]+)/);
+        return domainMatch ? "来源：" + domainMatch[1] + " " : "来源：" + url + " ";
+    });
+}
+
+
 
 ws.on('open', async function open() {
     ws.send(get_personal_info());
@@ -98,6 +111,9 @@ ws.on('open', async function open() {
 async function processMessage(msg, roomid) {
     // 移除包含特定关键词的Markdown代码块
     let cleanedMsg = msg.replace(/```[\s\S]*?(prompt|search\(|mclick\()[\s\S]*?```/g, '');
+
+    const resultMarkdownRegex = /^```[\s\S]*?Result:[\s\S]*?```[\s\S]*?```/m;
+    cleanedMsg = cleanedMsg.replace(resultMarkdownRegex, '');
 
     // 提取图片链接
     const imageRegex = /!\[image]\((.*?)\)/g;
@@ -136,9 +152,12 @@ async function processMessage(msg, roomid) {
 
     // 移除开头的空行
     cleanedMsg = cleanedMsg.replace(/^\s*\n/gm, '');
-	// 移除字符串中所有位置上的 [[...]] 形式的 URL 引用
-	cleanedMsg = cleanedMsg.replace(/\[\[\d+\]\(https?:\/\/[^\]]+\)\]/g, '');
-
+    try {
+        cleanedMsg = replaceLongUrlsWithDomain(cleanedMsg);
+    }catch (e) {
+        // 移除字符串中所有位置上的 [[...]] 形式的 URL 引用
+        cleanedMsg = cleanedMsg.replace(/\[\[\d+\]\(https?:\/\/[^\]]+\)\]/g, '');
+    }
     console.log(cleanedMsg);
     return cleanedMsg;
 }
