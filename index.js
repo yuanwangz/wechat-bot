@@ -85,14 +85,15 @@ async function downloadImage(url, targetPath) {
 }
 
 function replaceLongUrlsWithDomain(inputString) {
-    const urlRegex = /\bhttps?:\/\/[^\s()<>]+(?:\([\w.]+\))?[^\s()<>]*/g;
-    return inputString.replace(urlRegex, url => {
-        // 如果网址长度小于或等于 80 个字符，则不处理
-        if (url.length <= 80) return "来源：" + url + " ";
-
+    const citationUrlRegex = /\[\[(\d+)\]\((https?:\/\/[^\s()<>]+(?:\([\w.]+\))?[^\s()<>]*)\)\]/g;
+    return inputString.replace(citationUrlRegex, (fullMatch, number, url) => {
         // 提取网址的协议和主域名
-        const domainMatch = url.match(/^(https?:\/\/[^\/]+)/);
-        return domainMatch ? "来源：" + domainMatch[1] + " " : "来源：" + url + " ";
+        const domainMatch = url.length > 80 ? url.match(/^(https?:\/\/[^\/]+)/) : null;
+
+        // 如果网址长度大于 80 个字符，则替换为主域名，否则保持原始链接
+        const shortenedUrl = domainMatch ? domainMatch[1] : url;
+
+        return `[ 来源：${shortenedUrl} ]`;
     });
 }
 
