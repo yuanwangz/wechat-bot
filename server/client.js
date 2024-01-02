@@ -174,6 +174,25 @@ export const send_pic_msg = (wxid, content) => {
     //console.log(s);
     return s;
 }
+
+export const send_file_msg = (wxid, content) => {
+	console.log("发送文件："+FILE_DIR+content);
+    const j = {
+        id: getid(),
+        type: ATTATCH_FILE,
+        wxid: wxid,
+        roomid: 'null',
+        content: FILE_DIR+content,
+        nickname: "null",
+        ext: 'null'
+        //wxid:'22428457414@chatroom'
+
+    };
+
+    const s = JSON.stringify(j);
+    //console.log(s);
+    return s;
+}
 /**
  * send_txt_msg : 发送消息给好友
  * 

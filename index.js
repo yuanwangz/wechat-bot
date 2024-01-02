@@ -20,6 +20,7 @@ import {
     send_attatch,
     send_at_msg,
     send_pic_msg,
+	send_file_msg,
     get_personal_detail,
     send_txt_msg,
     get_contact_list,
@@ -126,7 +127,7 @@ async function processMessage(msg, roomid) {
         // 图片下载和处理的代码
         let filename = imageUrl.split('/').pop();
         // 定义一个图片类型的扩展名数组
-        const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff'];
+        const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg'];
         const fileExtension = filename.split('.').pop().toLowerCase();
 
         if (imageExtensions.includes(fileExtension)) {
@@ -137,7 +138,11 @@ async function processMessage(msg, roomid) {
 
         try {
             await downloadImage(imageUrl, imagePath);
-            ws.send(send_pic_msg(roomid, filename));
+			if (imageExtensions.includes(fileExtension)) {
+			    ws.send(send_pic_msg(roomid, filename));
+			}else {
+				ws.send(send_file_msg(roomid, filename));
+			}
 			// 延迟1分钟后删除文件
 			setTimeout(() => {
 				fs.unlink(imagePath, (err) => {
