@@ -87,7 +87,8 @@ function decryptFile(filePath, suffixMap,newFileName) {
 
         const dir = path.dirname(filePath);
         const filename = path.basename(filePath, path.extname(filePath));
-        const saveFileName = path.join(dir, newFileName + "." + suffix);
+        // const saveFileName = path.join(dir, newFileName + "." + suffix);
+        const saveFileName = path.resolve('./upload', newFileName + "." + suffix);
 
         fs.writeFile(saveFileName, newBuffer, (err) => {
             if (err) {
