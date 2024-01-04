@@ -9,7 +9,7 @@ import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import { unlink } from 'fs';
 import path from 'path';
-import { parseStringSync } from 'xml2js';
+import { parseString } from 'xml2js';
 dotenv.config()
 import {
     get_personal_info,
@@ -100,6 +100,14 @@ function replaceLongUrlsWithDomain(inputString) {
     });
 }
 
+function parseXml(xml) {
+  return new Promise((resolve, reject) => {
+    parseString(xml, {explicitArray: false}, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+}
 
 
 ws.on('open', async function open() {
@@ -322,7 +330,7 @@ ws.on('message', async (data) => {
 			nick = msgdata.nick
 			msgcontent = j.content.content;
 			console.log({ userid, nick, roomid, msgcontent })
-			const result = parseStringSync(msgcontent, {explicitArray: false});
+			const result = await parseXml(msgcontent);
 			// 输出解析后的对象，或者进行进一步处理
 			console.log(result);
 			// 如果需要，可以将这个对象转换为 JSON 字符串
@@ -337,7 +345,7 @@ ws.on('message', async (data) => {
 				const refermsg = msg.appmsg.refermsg;
 				if(refermsg == '3') {
 					//图片
-					const refermsg_result = parseStringSync(refermsg.content, {explicitArray: false});
+					const refermsg_result = await parseXml(refermsg.content);
 					const refContentJsonString = JSON.stringify(result);
 					console.log(refContentJsonString);
 				}else{
