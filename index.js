@@ -325,7 +325,7 @@ ws.on('message', async (data) => {
 			user_id = j.content.id1;
 			raw_msgdata = await get_member_nick(user_id, j.content.id2)
 			msgdata = JSON.parse(raw_msgdata.content)
-			roomid = msgdata.roomid
+			roomid = msgdata.roomid?msgdata.roomid:msgdata.wxid
 			userid = msgdata.wxid
 			nick = msgdata.nick
 			msgcontent = j.content.content;
@@ -339,7 +339,7 @@ ws.on('message', async (data) => {
 			if(msg_type == '57') {
 				//引用消息
 				const refermsg = result.msg.appmsg.refermsg;
-				if(refermsg == '3') {
+				if(refermsg.type == '3') {
 					//图片
 					const refermsg_result = await parseXml(refermsg.content);
 					const refContentJsonString = JSON.stringify(refermsg_result);
@@ -354,8 +354,8 @@ ws.on('message', async (data) => {
 					}
 				}else{
 					atplx='@'+BOT_NICKNAME+'';
-					if(j.content.startsWith(atplx)){
-						const raw_msg = j.content.replace(atplx, '').trim()
+					if(msgcontent.startsWith(atplx)){
+						const raw_msg = msgcontent.replace(atplx, '').trim()
 					    let new_msg = await processMessage(repmsg,roomid);
 					    if(new_msg != ''){
 					        ws.send(send_at_msg(roomid,userid,new_msg,nick));
