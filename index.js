@@ -6,8 +6,7 @@ import sparkReply from "./utils/sparkmsg.js"
 import { containsTextFileLine } from "./utils/checkword.js"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import fetch from 'node-fetch';
-import { promises as fs } from 'fs';
-import { unlink } from 'fs';
+import fs from 'fs';
 import path from 'path';
 import { parseString } from 'xml2js';
 dotenv.config()
