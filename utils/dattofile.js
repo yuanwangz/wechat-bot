@@ -1,8 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import util from 'util';
-
-const access = util.promisify(fs.access);
 async function getFile(data) {
     let parsedData = data;
 
@@ -22,15 +19,30 @@ async function getFile(data) {
     let thumbFileLinuxPath = path.resolve('./upload', thumbNormalizedPath);
     console.log("Detail路径转换:", detailFileLinuxPath);
     console.log("thumb路径转换:", thumbFileLinuxPath);
+    checkFileExists(detailFileLinuxPath)
+        .then(exists => {
+            if (exists) {
+                console.log('原文件存在');
+                resultFile = detailFileLinuxPath;
+            } else {
+                console.log('原文件不存在。使用缩略文件');
+                resultFile = thumbFileLinuxPath;
+            }
+            decryptFile(resultFile, suffixMap,aeskey);
+        });
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function checkFileExists(filePath) {
     try {
-        // 尝试检查detail文件是否存在
-        await access(detailFileLinuxPath, fs.constants.F_OK);
-        console.log(`${detailFileLinuxPath} 文件存在`);
-        resultFile = detailFileLinuxPath;
-    } catch (err) {
-        resultFile = thumbFileLinuxPath;
+        await delay(2000);
+        await fs.promises.access(filePath, fs.constants.F_OK);
+        return true;  // 文件存在
+    } catch (error) {
+        return false; // 文件不存在
     }
-    decryptFile(resultFile, suffixMap,aeskey);
 }
 
 const suffixMap = {
