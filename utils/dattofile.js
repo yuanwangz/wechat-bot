@@ -17,9 +17,9 @@ async function getFile(data) {
     console.log("Detail:", detail);
     console.log("Thumb:", thumb);
     let detailNormalizedPath = detail.split('\\').join('/');
-    let detailFileLinuxPath = path.resolve('../upload', detailNormalizedPath);
+    let detailFileLinuxPath = path.resolve('./upload', detailNormalizedPath);
     let thumbNormalizedPath = thumb.split('\\').join('/');
-    let thumbFileLinuxPath = path.resolve('../upload', thumbNormalizedPath);
+    let thumbFileLinuxPath = path.resolve('./upload', thumbNormalizedPath);
     console.log("Detail路径转换:", detailFileLinuxPath);
     console.log("thumb路径转换:", thumbFileLinuxPath);
     try {
