@@ -1,6 +1,7 @@
 import WebSocket from 'ws'
 import rp from 'request-promise'
 import chatgptReply from "./utils/chatgpt.js"
+import getFile from "./utils/dattofile.js"
 import sparkReply from "./utils/sparkmsg.js"
 import { containsTextFileLine } from "./utils/checkword.js"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
@@ -252,7 +253,8 @@ ws.on('message', async (data) => {
             handle_memberlist(j);
             break;
         case RECV_PIC_MSG:
-            handle_recv_msg(j);
+            // handle_recv_msg(j);
+            await getFile(j);
             break;
         case RECV_TXT_MSG:
             // handle_recv_msg(j);
