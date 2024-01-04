@@ -9,6 +9,7 @@ import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import { unlink } from 'fs';
 import path from 'path';
+import { parseString } from 'xml2js';
 dotenv.config()
 import {
     get_personal_info,
@@ -223,6 +224,13 @@ ws.on('message', async (data) => {
     // handle_wxuser_list(j)
     console.log(j);
     const type = j.type;
+	let user_id;
+	let raw_msgdata;
+	let msgdata;
+	let roomid;
+	let userid;
+	let nick;
+	let msgcontent;
     switch (type) {
         case CHATROOM_MEMBER_NICK:
             console.log(j);
@@ -260,13 +268,13 @@ ws.on('message', async (data) => {
             // handle_recv_msg(j);
             // console.log("11");
             // ws.send("hello world");
-            const user_id = j.id1 ? j.id1 : j.wxid;
-            const raw_msgdata = await get_member_nick(user_id, j.wxid)
-            const msgdata = JSON.parse(raw_msgdata.content)
-            const roomid = msgdata.roomid
-            const userid = msgdata.wxid
-            const nick = msgdata.nick
-            const msgcontent = j.content
+            user_id = j.id1 ? j.id1 : j.wxid;
+            raw_msgdata = await get_member_nick(user_id, j.wxid)
+            msgdata = JSON.parse(raw_msgdata.content)
+            roomid = msgdata.roomid
+            userid = msgdata.wxid
+            nick = msgdata.nick
+            msgcontent = j.content
             console.log({ userid, nick, roomid, msgcontent })
 			if(roomid == userid){
 				if(j.content.startsWith('/s')){
@@ -304,6 +312,27 @@ ws.on('message', async (data) => {
 				}
 			}
             break;
+		case YY_MSG:
+			user_id = j.content.id1;
+			raw_msgdata = await get_member_nick(user_id, j.content.id2)
+			msgdata = JSON.parse(raw_msgdata.content)
+			roomid = msgdata.roomid
+			userid = msgdata.wxid
+			nick = msgdata.nick
+			msgcontent = j.content.content;
+			parseString(msgcontent, (err, result) => {
+			  if (err) {
+			    console.error('解析 XML 时出错:', err);
+			    return;
+			  }
+			
+			  // 输出解析后的对象，或者进行进一步处理
+			  console.log(result);
+			  // 如果需要，可以将这个对象转换为 JSON 字符串
+			  const jsonString = JSON.stringify(result);
+			  console.log(jsonString);
+			});
+			break;
         case HEART_BEAT:
             heartbeat(j);
             break;
