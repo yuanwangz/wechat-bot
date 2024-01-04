@@ -9,7 +9,7 @@ import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import { unlink } from 'fs';
 import path from 'path';
-import { parseString } from 'xml2js';
+import { parseStringSync } from 'xml2js';
 dotenv.config()
 import {
     get_personal_info,
@@ -231,6 +231,7 @@ ws.on('message', async (data) => {
 	let userid;
 	let nick;
 	let msgcontent;
+	let atplx;
     switch (type) {
         case CHATROOM_MEMBER_NICK:
             console.log(j);
@@ -296,7 +297,7 @@ ws.on('message', async (data) => {
 				}
 				
 			}else{
-				const atplx='@'+BOT_NICKNAME+'';
+				atplx='@'+BOT_NICKNAME+'';
 				if(j.content.startsWith(atplx)){
 					const raw_msg = j.content.replace(atplx, '').trim()
 				    // userid, nick, roomid, msgcontent
@@ -320,18 +321,44 @@ ws.on('message', async (data) => {
 			userid = msgdata.wxid
 			nick = msgdata.nick
 			msgcontent = j.content.content;
-			parseString(msgcontent,{explicitArray: false}, (err, result) => {
-			  if (err) {
-			    console.error('解析 XML 时出错:', err);
-			    return;
-			  }
-			
-			  // 输出解析后的对象，或者进行进一步处理
-			  console.log(result);
-			  // 如果需要，可以将这个对象转换为 JSON 字符串
-			  const jsonString = JSON.stringify(result);
-			  console.log(jsonString);
-			});
+			console.log({ userid, nick, roomid, msgcontent })
+			const result = parseStringSync(msgcontent, {explicitArray: false});
+			// 输出解析后的对象，或者进行进一步处理
+			console.log(result);
+			// 如果需要，可以将这个对象转换为 JSON 字符串
+			const jsonString = JSON.stringify(result);
+			console.log(jsonString);
+			const msg = JSON.parse(jsonString);
+			msgcontent = msg.appmsg.title;
+			const msg_type = msg.appmsg.type;
+			let repmsg;
+			if(msg_type == '57') {
+				//引用消息
+				const refermsg = msg.appmsg.refermsg;
+				if(refermsg == '3') {
+					//图片
+					const refermsg_result = parseStringSync(refermsg.content, {explicitArray: false});
+					const refContentJsonString = JSON.stringify(result);
+					console.log(refContentJsonString);
+				}else{
+					repmsg = '引用消息暂时只支持图片类型';
+				}
+				if(roomid == userid){
+					let new_msg = await processMessage(repmsg,roomid);
+					if(new_msg != ''){
+					    ws.send(send_txt_msg(roomid, new_msg));
+					}
+				}else{
+					atplx='@'+BOT_NICKNAME+'';
+					if(j.content.startsWith(atplx)){
+						const raw_msg = j.content.replace(atplx, '').trim()
+					    let new_msg = await processMessage(repmsg,roomid);
+					    if(new_msg != ''){
+					        ws.send(send_at_msg(roomid,userid,new_msg,nick));
+					    }
+					}
+				}
+			}
 			break;
         case HEART_BEAT:
             heartbeat(j);
