@@ -87,8 +87,11 @@ function decryptFile(filePath, suffixMap,newFileName) {
 
         const dir = path.dirname(filePath);
         const filename = path.basename(filePath, path.extname(filePath));
-        // const saveFileName = path.join(dir, newFileName + "." + suffix);
-		const saveFileName = path.join(path.resolve('./upload'), newFileName, filename + "." + suffix);
+        const saveFileDir = path.join(path.resolve('./upload'), newFileName);
+		const saveFileName = path.join(saveFileDir, filename + "." + suffix);
+		if (!fs.existsSync(saveFileDir)) {
+		    fs.mkdirSync(saveFileDir, { recursive: true });
+		}
         fs.writeFile(saveFileName, newBuffer, (err) => {
             if (err) {
                 throw new Error('保存文件失败');
