@@ -333,16 +333,12 @@ ws.on('message', async (data) => {
 			const result = await parseXml(msgcontent);
 			// 输出解析后的对象，或者进行进一步处理
 			console.log(result);
-			// 如果需要，可以将这个对象转换为 JSON 字符串
-			const jsonString = JSON.stringify(result);
-			console.log(jsonString);
-			const msg = JSON.parse(jsonString);
-			msgcontent = msg.appmsg.title;
-			const msg_type = msg.appmsg.type;
+			msgcontent = result.appmsg.title;
+			const msg_type = result.appmsg.type;
 			let repmsg;
 			if(msg_type == '57') {
 				//引用消息
-				const refermsg = msg.appmsg.refermsg;
+				const refermsg = JSON.parse(result.appmsg.refermsg);
 				if(refermsg == '3') {
 					//图片
 					const refermsg_result = await parseXml(refermsg.content);
