@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import util from 'util';
 
 const access = util.promisify(fs.access);
 async function getFile(data) {
