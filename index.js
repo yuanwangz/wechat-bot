@@ -320,7 +320,7 @@ ws.on('message', async (data) => {
 			userid = msgdata.wxid
 			nick = msgdata.nick
 			msgcontent = j.content.content;
-			parseString(msgcontent, (err, result) => {
+			parseString(msgcontent,{explicitArray: false}, (err, result) => {
 			  if (err) {
 			    console.error('解析 XML 时出错:', err);
 			    return;
