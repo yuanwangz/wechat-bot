@@ -13,7 +13,7 @@ const systemMessage = {
 
 const conversationPool = new Map();
 
-async function chatgptReply(wxid, id, nick, rawmsg) {
+async function chatgptReply(wxid, id, nick, rawmsg,file) {
   console.log(`chat:${wxid}-------${id}\nrawmsg: ${rawmsg}`);
   let response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
   if (rawmsg === "清除所有对话" && id === "wxid_8wat4euufsc522") {
@@ -25,7 +25,20 @@ async function chatgptReply(wxid, id, nick, rawmsg) {
     response = `${nick}的对话已结束`
     return response
   } else {
-
+	if(file){
+		rawmsg = [
+                {
+                    "type": "text",
+                    "text": ""+rawmsg+""
+                },
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": ""+file+""
+                    }
+                }
+            ]
+	}
     const datatime = Date.now()
     const messages = conversationPool.get(id) ?
       [...conversationPool.get(id).messages, { role: 'user', content: rawmsg }] :

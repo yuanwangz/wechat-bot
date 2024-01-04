@@ -109,6 +109,41 @@ function parseXml(xml) {
   });
 }
 
+async function fileToBase64(filePath) {
+    try {
+        // 读取文件内容（返回的是Buffer）
+        const fileBuffer = await fs.readFile(filePath);
+
+        // 将Buffer转换为Base64字符串
+        return fileBuffer.toString('base64');
+    } catch (error) {
+        console.error('Error reading file:', error);
+        throw error;
+    }
+}
+
+function getFirstFilePath(directory) {
+    try {
+        // 同步读取目录内容
+        const files = fs.readdirSync(directory);
+
+        // 过滤掉目录，只保留文件
+        const firstFile = files.find(file => {
+            return fs.statSync(path.join(directory, file)).isFile();
+        });
+
+        // 如果找到了文件，返回其完整路径
+        if (firstFile) {
+            return path.join(directory, firstFile);
+        } else {
+            throw new Error('No files found in the directory');
+        }
+    } catch (error) {
+        console.error('Error:', error.message);
+        throw error;
+    }
+}
+
 
 ws.on('open', async function open() {
     ws.send(get_personal_info());
@@ -295,10 +330,10 @@ ws.on('message', async (data) => {
 				    ws.send(send_txt_msg(roomid, msg));
 				}else{
 				    // userid, nick, roomid, msgcontent
-				    const msg = await chatgptReply(roomid, userid, nick, msgcontent)
+				    const msg = await chatgptReply(roomid, userid, nick, msgcontent,'')
 				    //    await  send_txt_msg1(j.wxid, j.content)
 				    // const new_msg = await containsTextFileLine(msg)
-				    const new_msg = await processMessage(msg,roomid);
+				    let new_msg = await processMessage(msg,roomid);
 				    if(new_msg != ''){
 				        ws.send(send_txt_msg(roomid, new_msg));
 				    }
@@ -309,7 +344,7 @@ ws.on('message', async (data) => {
 				if(j.content.startsWith(atplx)){
 					const raw_msg = j.content.replace(atplx, '').trim()
 				    // userid, nick, roomid, msgcontent
-				    const msg = await chatgptReply(roomid, userid, nick, raw_msg)
+				    const msg = await chatgptReply(roomid, userid, nick, raw_msg,'')
 				    //    await  send_txt_msg1(j.wxid, j.content)
 				    // const new_msg = await containsTextFileLine(msg)
 				    let new_msg = await processMessage(msg,roomid);
@@ -342,8 +377,10 @@ ws.on('message', async (data) => {
 				if(refermsg.type == '3') {
 					//图片
 					const refermsg_result = await parseXml(refermsg.content);
-					const refContentJsonString = JSON.stringify(refermsg_result);
-					console.log(refContentJsonString);
+					let refFileDir = path.join(path.resolve('./upload'), refermsg_result.msg.img.$.aeskey);
+					let refFilePath = getFirstFilePath(refFileDir);
+					const fileBase64 = await fileToBase64(refFilePath);
+					repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileBase64);
 				}else{
 					repmsg = '引用消息暂时只支持图片类型';
 				}
