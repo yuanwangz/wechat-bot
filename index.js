@@ -8,6 +8,7 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 import fetch from 'node-fetch';
 import fs from 'fs/promises';
 import path from 'path';
+import express from 'express';
 import { parseString } from 'xml2js';
 dotenv.config()
 import {
@@ -35,7 +36,9 @@ import {
 // const axios = require('axios');
 // const fs = require('fs');
 // const path = require('path');
+const app = express();
 const SERVER_HOST = process.env.SERVER_HOST
+const BACKEND_URL = process.env.BACKEND_URL
 let BOT_NICKNAME = ''
 const ws = new WebSocket(`ws://${SERVER_HOST}`);
 const url = `http://${SERVER_HOST}`;
@@ -106,19 +109,6 @@ function parseXml(xml) {
       else resolve(result);
     });
   });
-}
-
-async function fileToBase64(filePath) {
-    try {
-        // 读取文件内容（返回的是Buffer）
-        const fileBuffer = await fs.readFile(filePath);
-
-        // 将Buffer转换为Base64字符串
-        return fileBuffer.toString('base64');
-    } catch (error) {
-        console.error('Error reading file:', error);
-        throw error;
-    }
 }
 
 function getFirstFilePath(directory) {
@@ -376,10 +366,12 @@ ws.on('message', async (data) => {
 				if(refermsg.type == '3') {
 					//图片
 					const refermsg_result = await parseXml(refermsg.content);
-					let refFileDir = path.join(path.resolve('./upload'), refermsg_result.msg.img.$.aeskey);
+					let refFileDir = path.join(path.resolve('./WeChat Files'), refermsg_result.msg.img.$.aeskey);
 					let refFilePath = getFirstFilePath(refFileDir);
-					const fileBase64 = await fileToBase64(refFilePath);
-					repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileBase64);
+                    let filename = refFilePath.split('/').pop();
+					const fileUrl = `${BACKEND_URL}/${refermsg_result.msg.img.$.aeskey}/${filename}`;
+                    console.log(`对外文件地址：${fileUrl}`);
+					repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
 				}else{
 					repmsg = '引用消息暂时只支持图片类型';
 				}
@@ -440,4 +432,36 @@ ws.on('message', async (data) => {
 
 ws.on('close', function close() {
     console.log('disconnected');
+});
+
+const basePath = path.resolve('./WeChat Files');
+
+app.get('/file/:dir/:filename', async (req, res) => {
+    const { dir, filename } = req.params;
+
+    // 验证路径组件
+    if (!dir.match(/^[A-Za-z0-9_-]+$/) || !filename.match(/^[A-Za-z0-9._-]+$/)) {
+        return res.status(400).send('Invalid directory or filename');
+    }
+
+    // 构建和规范化文件路径
+    const filePath = path.join(basePath, dir, filename);
+
+    try {
+        // 确保文件路径位于安全的基础路径下
+        if (!filePath.startsWith(basePath)) {
+            throw new Error('Access denied');
+        }
+
+        // 检查文件是否存在且可读
+        await fs.access(filePath, fs.constants.R_OK);
+        res.sendFile(filePath);
+    } catch (error) {
+        res.status(404).send('File not found or access denied');
+    }
+});
+
+const PORT = 5557;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

@@ -14,9 +14,9 @@ async function getFile(data) {
     console.log("Detail:", detail);
     console.log("Thumb:", thumb);
     let detailNormalizedPath = detail.split('\\').join('/');
-    let detailFileLinuxPath = path.resolve('./upload', detailNormalizedPath);
+    let detailFileLinuxPath = path.resolve('./WeChat Files', detailNormalizedPath);
     let thumbNormalizedPath = thumb.split('\\').join('/');
-    let thumbFileLinuxPath = path.resolve('./upload', thumbNormalizedPath);
+    let thumbFileLinuxPath = path.resolve('./WeChat Files', thumbNormalizedPath);
     console.log("Detail路径转换:", detailFileLinuxPath);
     console.log("thumb路径转换:", thumbFileLinuxPath);
     checkFileExists(detailFileLinuxPath)
@@ -87,7 +87,7 @@ function decryptFile(filePath, suffixMap,newFileName) {
 
         const dir = path.dirname(filePath);
         const filename = path.basename(filePath, path.extname(filePath));
-        const saveFileDir = path.join(path.resolve('./upload'), newFileName);
+        const saveFileDir = path.join(path.resolve('./WeChat Files'), newFileName);
 		const saveFileName = path.join(saveFileDir, filename + "." + suffix);
 		if (!fs.existsSync(saveFileDir)) {
 		    fs.mkdirSync(saveFileDir, { recursive: true });
@@ -97,6 +97,13 @@ function decryptFile(filePath, suffixMap,newFileName) {
                 throw new Error('保存文件失败');
             }
             console.log('文件保存成功:', saveFileName);
+            fs.unlink(filePath, (err) => {
+                if (err) {
+                    console.error('删除本地文件错误:', err);
+                } else {
+                    console.log('本地文件已删除:', imagePath);
+                }
+            });
         });
     });
 }
