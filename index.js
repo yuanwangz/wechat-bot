@@ -347,8 +347,8 @@ ws.on('message', async (data) => {
 			}
             break;
 		case YY_MSG:
-			user_id = j.content.id1;
-			raw_msgdata = await get_member_nick(user_id, j.content.id2)
+			user_id = j.content.id2?j.content.id2:j.content.id1;
+			raw_msgdata = await get_member_nick(user_id, j.content.id1)
 			msgdata = JSON.parse(raw_msgdata.content)
 			roomid = msgdata.roomid?msgdata.roomid:msgdata.wxid
 			userid = msgdata.wxid
