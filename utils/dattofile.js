@@ -101,7 +101,7 @@ function decryptFile(filePath, suffixMap,newFileName) {
                 if (err) {
                     console.error('删除本地文件错误:', err);
                 } else {
-                    console.log('本地文件已删除:', imagePath);
+                    console.log('本地文件已删除:', filePath);
                 }
             });
         });
