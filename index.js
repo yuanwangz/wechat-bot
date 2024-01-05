@@ -447,7 +447,7 @@ app.get('/file/:dir/:filename', async (req, res) => {
 
     // 构建和规范化文件路径
     const filePath = path.join(basePath, dir, filename);
-
+    console.log(`请求文件：${filePath}`);
     try {
         // 确保文件路径位于安全的基础路径下
         if (!filePath.startsWith(basePath)) {
