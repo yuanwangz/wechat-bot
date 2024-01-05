@@ -6,7 +6,8 @@ import sparkReply from "./utils/sparkmsg.js"
 import { containsTextFileLine } from "./utils/checkword.js"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 import fetch from 'node-fetch';
-import fs from 'fs/promises';
+import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
 import express from 'express';
 import { parseString } from 'xml2js';
@@ -67,11 +68,11 @@ async function downloadImage(url, targetPath) {
         // 检查目录是否存在
         const dir = path.dirname(targetPath);
         try {
-            await fs.access(dir);
+            await fsp.access(dir);
         } catch (error) {
             if (error.code === 'ENOENT') {
                 // 如果目录不存在，创建它
-                await fs.mkdir(dir, { recursive: true });
+                await fsp.mkdir(dir, { recursive: true });
             } else {
                 throw error; // 重新抛出其他错误
             }
@@ -81,7 +82,7 @@ async function downloadImage(url, targetPath) {
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        await fs.writeFile(targetPath, buffer);
+        await fsp.writeFile(targetPath, buffer);
         console.log('Image successfully downloaded and saved to', targetPath);
     } catch (error) {
         console.error('Error occurred in downloadImage:', error);
@@ -454,7 +455,7 @@ app.get('/file/:dir/:filename', async (req, res) => {
         }
 
         // 检查文件是否存在且可读
-        await fs.access(filePath, fs.constants.R_OK);
+        await fsp.access(filePath, fs.constants.R_OK);
         res.sendFile(filePath);
     } catch (error) {
         res.status(404).send('File not found or access denied');
