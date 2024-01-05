@@ -369,20 +369,25 @@ ws.on('message', async (data) => {
             if (msg_type == '57') {
                 let refermsg = result.msg.appmsg.refermsg;
                 let fileUrl = '';
-
-                if (refermsg.type == '3') {
-                    // 处理图片消息
-                    fileUrl = await processImageMessage(refermsg);
-                    repmsg = await chatgptReply(roomid, userid, nick, raw_msg, fileUrl);
-                } else {
-                    repmsg = '引用消息暂时只支持图片类型';
-                }
-
                 let new_msg = await processMessage(repmsg, roomid);
                 if (new_msg != '') {
                     if (isPersonalChat) {
+                        if (refermsg.type == '3') {
+                            // 处理图片消息
+                            fileUrl = await processImageMessage(refermsg);
+                            repmsg = await chatgptReply(roomid, userid, nick, raw_msg, fileUrl);
+                        } else {
+                            repmsg = '引用消息暂时只支持图片类型';
+                        }
                         ws.send(send_txt_msg(roomid, new_msg));
                     } else if (isGroupChat) {
+                        if (refermsg.type == '3') {
+                            // 处理图片消息
+                            fileUrl = await processImageMessage(refermsg);
+                            repmsg = await chatgptReply(roomid, userid, nick, raw_msg, fileUrl);
+                        } else {
+                            repmsg = '引用消息暂时只支持图片类型';
+                        }
                         ws.send(send_at_msg(roomid, userid, new_msg, nick));
                     }
                 }
