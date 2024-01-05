@@ -360,38 +360,43 @@ ws.on('message', async (data) => {
 			console.log(result);
 			msgcontent = result.msg.appmsg.title;
 			const msg_type = result.msg.appmsg.type;
-            let repmsg = '';
-            let atplx = '@' + BOT_NICKNAME;
-            let isPersonalChat = roomid == userid;
-            let isGroupChat = !isPersonalChat && msgcontent.startsWith(atplx);
-            let raw_msg = isGroupChat ? msgcontent.replace(atplx, '').trim() : msgcontent;
-
-            if (msg_type == '57') {
-                let refermsg = result.msg.appmsg.refermsg;
-                let fileUrl = '';
-                let new_msg = await processMessage(repmsg, roomid);
-                if (new_msg != '') {
-                    if (isPersonalChat) {
-                        if (refermsg.type == '3') {
-                            // 处理图片消息
-                            fileUrl = await processImageMessage(refermsg);
-                            repmsg = await chatgptReply(roomid, userid, nick, raw_msg, fileUrl);
-                        } else {
-                            repmsg = '引用消息暂时只支持图片类型';
-                        }
-                        ws.send(send_txt_msg(roomid, new_msg));
-                    } else if (isGroupChat) {
-                        if (refermsg.type == '3') {
-                            // 处理图片消息
-                            fileUrl = await processImageMessage(refermsg);
-                            repmsg = await chatgptReply(roomid, userid, nick, raw_msg, fileUrl);
-                        } else {
-                            repmsg = '引用消息暂时只支持图片类型';
-                        }
-                        ws.send(send_at_msg(roomid, userid, new_msg, nick));
+			let repmsg;
+			if(msg_type == '57') {
+				//引用消息
+				if(roomid == userid){
+                    let refermsg = result.msg.appmsg.refermsg;
+                    if(refermsg.type == '3') {
+                        //图片
+                        const fileUrl = await processImageMessage(refermsg);
+                        console.log(`对外文件地址：${fileUrl}`);
+                        repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
+                    }else{
+                        repmsg = '引用消息暂时只支持图片类型';
                     }
-                }
-            }
+					let new_msg = await processMessage(repmsg,roomid);
+					if(new_msg != ''){
+					    ws.send(send_txt_msg(roomid, new_msg));
+					}
+				}else{
+					atplx='@'+BOT_NICKNAME+'';
+					if(msgcontent.startsWith(atplx)){
+						const raw_msg = msgcontent.replace(atplx, '').trim()
+                        let refermsg = result.msg.appmsg.refermsg;
+                        if(refermsg.type == '3') {
+                            //图片
+                            const fileUrl = await processImageMessage(refermsg);
+                            console.log(`对外文件地址：${fileUrl}`);
+                            repmsg = await chatgptReply(roomid, userid, nick, raw_msg,fileUrl);
+                        }else{
+                            repmsg = '引用消息暂时只支持图片类型';
+                        }
+					    let new_msg = await processMessage(repmsg,roomid);
+					    if(new_msg != ''){
+					        ws.send(send_at_msg(roomid,userid,new_msg,nick));
+					    }
+					}
+				}
+			}
 			break;
         case HEART_BEAT:
             heartbeat(j);
