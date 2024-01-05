@@ -13,7 +13,7 @@ import rp from 'request-promise'
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
 dotenv.config()
 const SERVER_HOST = process.env.SERVER_HOST
-const FILE_DIR = process.env.FILE_DIR
+const FILE_DIR = "C:\\\\users\\\\app\\\\Pictures\\\\upload\\\\"
 
 const ws = new WebSocket(`ws://${SERVER_HOST}`);
 const url = `http://${SERVER_HOST}`;
