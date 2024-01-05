@@ -360,38 +360,33 @@ ws.on('message', async (data) => {
 			console.log(result);
 			msgcontent = result.msg.appmsg.title;
 			const msg_type = result.msg.appmsg.type;
-			let repmsg;
-			if(msg_type == '57') {
-				//引用消息
-				const refermsg = result.msg.appmsg.refermsg;
-				if(refermsg.type == '3') {
-					//图片
-					const refermsg_result = await parseXml(refermsg.content);
-					let refFileDir = path.join(path.resolve('./WeChat Files'), refermsg_result.msg.img.$.aeskey);
-					let refFilePath = getFirstFilePath(refFileDir);
-                    let filename = refFilePath.split('/').pop();
-					const fileUrl = `${BACKEND_URL}/${refermsg_result.msg.img.$.aeskey}/${filename}`;
-                    console.log(`对外文件地址：${fileUrl}`);
-					repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
-				}else{
-					repmsg = '引用消息暂时只支持图片类型';
-				}
-				if(roomid == userid){
-					let new_msg = await processMessage(repmsg,roomid);
-					if(new_msg != ''){
-					    ws.send(send_txt_msg(roomid, new_msg));
-					}
-				}else{
-					atplx='@'+BOT_NICKNAME+'';
-					if(msgcontent.startsWith(atplx)){
-						const raw_msg = msgcontent.replace(atplx, '').trim()
-					    let new_msg = await processMessage(repmsg,roomid);
-					    if(new_msg != ''){
-					        ws.send(send_at_msg(roomid,userid,new_msg,nick));
-					    }
-					}
-				}
-			}
+            let repmsg = '';
+            let atplx = '@' + BOT_NICKNAME;
+            let isPersonalChat = roomid == userid;
+            let isGroupChat = !isPersonalChat && msgcontent.startsWith(atplx);
+            let raw_msg = isGroupChat ? msgcontent.replace(atplx, '').trim() : msgcontent;
+
+            if (msg_type == '57') {
+                let refermsg = result.msg.appmsg.refermsg;
+                let fileUrl = '';
+
+                if (refermsg.type == '3') {
+                    // 处理图片消息
+                    fileUrl = await processImageMessage(refermsg);
+                    repmsg = await chatgptReply(roomid, userid, nick, raw_msg, fileUrl);
+                } else {
+                    repmsg = '引用消息暂时只支持图片类型';
+                }
+
+                let new_msg = await processMessage(repmsg, roomid);
+                if (new_msg != '') {
+                    if (isPersonalChat) {
+                        ws.send(send_txt_msg(roomid, new_msg));
+                    } else if (isGroupChat) {
+                        ws.send(send_at_msg(roomid, userid, new_msg, nick));
+                    }
+                }
+            }
 			break;
         case HEART_BEAT:
             heartbeat(j);
@@ -430,6 +425,13 @@ ws.on('message', async (data) => {
     }, 500);*/
 });
 
+async function processImageMessage(refermsg) {
+    let refermsg_result = await parseXml(refermsg.content);
+    let refFileDir = path.join(path.resolve('./WeChat Files'), refermsg_result.msg.img.$.aeskey);
+    let refFilePath = getFirstFilePath(refFileDir);
+    let filename = refFilePath.split('/').pop();
+    return `${BACKEND_URL}/${refermsg_result.msg.img.$.aeskey}/${filename}`;
+}
 
 ws.on('close', function close() {
     console.log('disconnected');
