@@ -183,9 +183,10 @@ async function processMessage(msg, roomid) {
 				ws.send(send_file_msg(roomid, filename));
 			}
 			const saveFileDir = path.join(path.resolve('./WeChat Files/file'), md5, filename);
-			if (!fs.existsSync(saveFileDir)) {
+			let file_dir = path.dirname(saveFileDir);
+			if (!fs.existsSync(file_dir)) {
 			    // 如果目标目录不存在，创建它
-			    fs.mkdirSync(saveFileDir, { recursive: true });
+			    fs.mkdirSync(file_dir, { recursive: true });
 			}
 			fs.copyFileSync(imagePath, saveFileDir);
 			// 延迟1分钟后删除文件
@@ -427,9 +428,10 @@ ws.on('message', async (data) => {
 				        if (exists) {
 				            console.log('原文件存在');
 							const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
-							if (!fs.existsSync(saveFileDir)) {
+							let file_dir = path.dirname(saveFileDir);
+							if (!fs.existsSync(file_dir)) {
 							    // 如果目标目录不存在，创建它
-							    fs.mkdirSync(saveFileDir, { recursive: true });
+							    fs.mkdirSync(file_dir, { recursive: true });
 							}
 							fs.copyFileSync(detailFilePath, saveFileDir);
 							// 延迟1分钟后删除文件
