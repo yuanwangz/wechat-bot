@@ -405,9 +405,15 @@ ws.on('message', async (data) => {
                             const fileUrl = await processImageMessage(refermsg);
                             console.log(`对外文件地址：${fileUrl}`);
                             repmsg = await chatgptReply(roomid, userid, nick, raw_msg,fileUrl);
-                        }else{
-                            repmsg = '引用消息暂时只支持图片类型';
-                        }
+                        }else if (refermsg.type == '49'){
+							//文件
+							let refContent = refermsg.content;
+							const contentResult = await parseXml(refContent);
+							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
+							console.log(`对外文件地址：${fileUrl}`);
+							console.log("contentResult:"+JSON.stringify(contentResult));
+							repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
+						}
 					    let new_msg = await processMessage(repmsg,roomid);
 					    if(new_msg != ''){
 					        ws.send(send_at_msg(roomid,userid,new_msg,nick));
@@ -516,7 +522,7 @@ app.get('/file/:dir/:filename', async (req, res) => {
     const { dir, filename } = req.params;
 
     // 验证路径组件
-    if (!dir.match(/^[A-Za-z0-9_-]+$/) || !filename.match(/^[A-Za-z0-9._-]+$/)) {
+    if (!dir.match(/^[A-Za-z0-9_-]+$/) || !filename.match(/^[A-Za-z0-9._\- ()（）\p{Script=Han}]+$/u)) {
         return res.status(400).send('Invalid directory or filename');
     }
 
