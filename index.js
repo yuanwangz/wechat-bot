@@ -422,13 +422,13 @@ ws.on('message', async (data) => {
 				            console.log('原文件存在');
 							const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
 							// 检查目录是否存在
-							const dir = path.dirname(saveFileDir);
+							const checkdir = path.dirname(saveFileDir);
 							try {
-							    await fsp.access(dir);
+							    await fsp.access(checkdir);
 							} catch (error) {
 							    if (error.code === 'ENOENT') {
 							        // 如果目录不存在，创建它
-							        await fsp.mkdir(dir, { recursive: true });
+							        await fsp.mkdir(checkdir, { recursive: true });
 							    } else {
 							        throw error; // 重新抛出其他错误
 							    }
