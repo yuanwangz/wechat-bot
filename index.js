@@ -421,18 +421,6 @@ ws.on('message', async (data) => {
 				        if (exists) {
 				            console.log('原文件存在');
 							const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
-							// 检查目录是否存在
-							const checkdir = path.dirname(saveFileDir);
-							try {
-							    await fsp.access(checkdir);
-							} catch (error) {
-							    if (error.code === 'ENOENT') {
-							        // 如果目录不存在，创建它
-							        await fsp.mkdir(checkdir, { recursive: true });
-							    } else {
-							        throw error; // 重新抛出其他错误
-							    }
-							}
 							fs.copyFileSync(detailFilePath, saveFileDir);
 							// 延迟1分钟后删除文件
 							setTimeout(() => {
