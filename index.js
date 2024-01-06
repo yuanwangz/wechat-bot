@@ -183,6 +183,10 @@ async function processMessage(msg, roomid) {
 				ws.send(send_file_msg(roomid, filename));
 			}
 			const saveFileDir = path.join(path.resolve('./WeChat Files/file'), md5, filename);
+			if (!fs.existsSync(saveFileDir)) {
+			    // 如果目标目录不存在，创建它
+			    fs.mkdirSync(saveFileDir, { recursive: true });
+			}
 			fs.copyFileSync(imagePath, saveFileDir);
 			// 延迟1分钟后删除文件
 			setTimeout(() => {
@@ -381,8 +385,10 @@ ws.on('message', async (data) => {
 						//文件
 						let refContent = refermsg.content;
 						const contentResult = await parseXml(refContent);
+						const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
+						console.log(`对外文件地址：${fileUrl}`);
 						console.log("contentResult:"+JSON.stringify(contentResult));
-                        repmsg = '引用消息暂时只支持图片类型';
+                        repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
                     }
 					let new_msg = await processMessage(repmsg,roomid);
 					if(new_msg != ''){
@@ -421,6 +427,10 @@ ws.on('message', async (data) => {
 				        if (exists) {
 				            console.log('原文件存在');
 							const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
+							if (!fs.existsSync(saveFileDir)) {
+							    // 如果目标目录不存在，创建它
+							    fs.mkdirSync(saveFileDir, { recursive: true });
+							}
 							fs.copyFileSync(detailFilePath, saveFileDir);
 							// 延迟1分钟后删除文件
 							setTimeout(() => {
