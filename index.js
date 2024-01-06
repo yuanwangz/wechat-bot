@@ -388,7 +388,6 @@ ws.on('message', async (data) => {
 						const contentResult = await parseXml(refContent);
 						const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 						console.log(`对外文件地址：${fileUrl}`);
-						console.log("contentResult:"+JSON.stringify(contentResult));
                         repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
                     }
 					let new_msg = await processMessage(repmsg,roomid);
@@ -411,7 +410,6 @@ ws.on('message', async (data) => {
 							const contentResult = await parseXml(refContent);
 							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 							console.log(`对外文件地址：${fileUrl}`);
-							console.log("contentResult:"+JSON.stringify(contentResult));
 							repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
 						}
 					    let new_msg = await processMessage(repmsg,roomid);
