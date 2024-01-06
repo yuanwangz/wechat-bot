@@ -4,13 +4,13 @@ async function getFile(data) {
     let parsedData = data;
 
     // 提取需要的信息
-    let aeskey = parsedData.content.content.match(/aeskey="([^"]+)"/)[1];
+    let aeskey = parsedData.content.content.match(/md5="([^"]+)"/)[1];
     let detail = parsedData.content.detail;
     let thumb = parsedData.content.thumb;
     let resultFile = '';
 
     // 打印提取的信息
-    console.log("AES Key:", aeskey);
+    console.log("md5:", aeskey);
     console.log("Detail:", detail);
     console.log("Thumb:", thumb);
     let detailNormalizedPath = detail.split('\\').join('/');
@@ -87,7 +87,7 @@ function decryptFile(filePath, suffixMap,newFileName) {
 
         const dir = path.dirname(filePath);
         const filename = path.basename(filePath, path.extname(filePath));
-        const saveFileDir = path.join(path.resolve('./WeChat Files'), newFileName);
+        const saveFileDir = path.join(path.resolve('./WeChat Files/file'), newFileName);
 		const saveFileName = path.join(saveFileDir, filename + "." + suffix);
 		if (!fs.existsSync(saveFileDir)) {
 		    fs.mkdirSync(saveFileDir, { recursive: true });

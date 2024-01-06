@@ -10,6 +10,7 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 import express from 'express';
+import crypto from 'crypto';
 import { parseString } from 'xml2js';
 dotenv.config()
 import {
@@ -41,6 +42,7 @@ const app = express();
 const SERVER_HOST = process.env.SERVER_HOST
 const BACKEND_URL = process.env.BACKEND_URL
 let BOT_NICKNAME = ''
+let BOT_WXID =''
 const ws = new WebSocket(`ws://${SERVER_HOST}`);
 const url = `http://${SERVER_HOST}`;
 const HEART_BEAT = 5005;
@@ -82,8 +84,10 @@ async function downloadImage(url, targetPath) {
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
+		const md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
         await fsp.writeFile(targetPath, buffer);
-        console.log('Image successfully downloaded and saved to', targetPath);
+        console.log('Image successfully downloaded and saved to', targetPath+",md5:"+md5Hash);
+		return md5Hash;
     } catch (error) {
         console.error('Error occurred in downloadImage:', error);
         throw error;
@@ -172,12 +176,14 @@ async function processMessage(msg, roomid) {
         const imagePath = path.resolve('upload', filename);
 
         try {
-            await downloadImage(imageUrl, imagePath);
+            const md5 = await downloadImage(imageUrl, imagePath);
 			if (imageExtensions.includes(fileExtension)) {
 			    ws.send(send_pic_msg(roomid, filename));
 			}else {
 				ws.send(send_file_msg(roomid, filename));
 			}
+			const saveFileDir = path.join(path.resolve('./WeChat Files/file'), md5, filename);
+			fs.copyFileSync(imagePath, saveFileDir);
 			// 延迟1分钟后删除文件
 			setTimeout(() => {
 				fs.unlink(imagePath, (err) => {
@@ -283,6 +289,7 @@ ws.on('message', async (data) => {
             console.log(j);
 			const bot_info = JSON.parse(j.content);
 			BOT_NICKNAME = bot_info.wx_name;
+			BOT_WXID = bot_info.wx_id;
             break;
         case TXT_MSG:
             // console.log(j);
@@ -370,7 +377,10 @@ ws.on('message', async (data) => {
                         const fileUrl = await processImageMessage(refermsg);
                         console.log(`对外文件地址：${fileUrl}`);
                         repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
-                    }else{
+                    }else if (refermsg.type == '49'){
+						//文件
+						let refContent = refermsg.content;
+						console.log("refContent:"+JSON.stringify(refContent));
                         repmsg = '引用消息暂时只支持图片类型';
                     }
 					let new_msg = await processMessage(repmsg,roomid);
@@ -396,6 +406,33 @@ ws.on('message', async (data) => {
 					    }
 					}
 				}
+			}else if(msg_type == '6') {
+				//附件消息
+				let attName = result.msg.appmsg.title;
+				let attMd5 = result.msg.appmsg.md5;
+				const currentDate = new Date();
+				const year = currentDate.getFullYear();
+				const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+				const yearMonth = `${year}-${month}`;
+				let detailFilePath = path.join(path.resolve('./WeChat Files'),BOT_WXID, 'FileStorage', 'File', yearMonth , attName);
+				checkFileExists(detailFilePath)
+				    .then(exists => {
+				        if (exists) {
+				            console.log('原文件存在');
+							const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
+							fs.copyFileSync(detailFilePath, saveFileDir);
+							// 延迟1分钟后删除文件
+							setTimeout(() => {
+								fs.unlink(detailFilePath, (err) => {
+									if (err) {
+										console.error('删除本地文件错误:', err);
+									} else {
+										console.log('本地文件已删除:', detailFilePath);
+									}
+								});
+							}, 10000);
+				        }
+				    });
 			}
 			break;
         case HEART_BEAT:
@@ -437,17 +474,30 @@ ws.on('message', async (data) => {
 
 async function processImageMessage(refermsg) {
     let refermsg_result = await parseXml(refermsg.content);
-    let refFileDir = path.join(path.resolve('./WeChat Files'), refermsg_result.msg.img.$.aeskey);
+    let refFileDir = path.join(path.resolve('./WeChat Files/file'), refermsg_result.msg.img.$.md5);
     let refFilePath = getFirstFilePath(refFileDir);
     let filename = refFilePath.split('/').pop();
     return `${BACKEND_URL}/${refermsg_result.msg.img.$.aeskey}/${filename}`;
+}
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function checkFileExists(filePath) {
+    try {
+        await delay(2000);
+        await fsp.access(filePath, fs.constants.F_OK);
+        return true;  // 文件存在
+    } catch (error) {
+        return false; // 文件不存在
+    }
 }
 
 ws.on('close', function close() {
     console.log('disconnected');
 });
 
-const basePath = path.resolve('./WeChat Files');
+const basePath = path.resolve('./WeChat Files/file');
 
 app.get('/file/:dir/:filename', async (req, res) => {
     const { dir, filename } = req.params;
