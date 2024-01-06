@@ -380,7 +380,8 @@ ws.on('message', async (data) => {
                     }else if (refermsg.type == '49'){
 						//文件
 						let refContent = refermsg.content;
-						console.log("refContent:"+JSON.stringify(refContent));
+						const contentResult = await parseXml(refContent);
+						console.log("contentResult:"+JSON.stringify(contentResult));
                         repmsg = '引用消息暂时只支持图片类型';
                     }
 					let new_msg = await processMessage(repmsg,roomid);
@@ -420,6 +421,18 @@ ws.on('message', async (data) => {
 				        if (exists) {
 				            console.log('原文件存在');
 							const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
+							// 检查目录是否存在
+							const dir = path.dirname(saveFileDir);
+							try {
+							    await fsp.access(dir);
+							} catch (error) {
+							    if (error.code === 'ENOENT') {
+							        // 如果目录不存在，创建它
+							        await fsp.mkdir(dir, { recursive: true });
+							    } else {
+							        throw error; // 重新抛出其他错误
+							    }
+							}
 							fs.copyFileSync(detailFilePath, saveFileDir);
 							// 延迟1分钟后删除文件
 							setTimeout(() => {
@@ -477,7 +490,7 @@ async function processImageMessage(refermsg) {
     let refFileDir = path.join(path.resolve('./WeChat Files/file'), refermsg_result.msg.img.$.md5);
     let refFilePath = getFirstFilePath(refFileDir);
     let filename = refFilePath.split('/').pop();
-    return `${BACKEND_URL}/${refermsg_result.msg.img.$.aeskey}/${filename}`;
+    return `${BACKEND_URL}/${refermsg_result.msg.img.$.md5}/${filename}`;
 }
 
 function delay(ms) {
