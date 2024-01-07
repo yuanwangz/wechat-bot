@@ -389,7 +389,9 @@ ws.on('message', async (data) => {
 						const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 						console.log(`对外文件地址：${fileUrl}`);
                         repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
-                    }
+                    }else{
+						 repmsg = '暂不支持该引用类型';
+					}
 					let new_msg = await processMessage(repmsg,roomid);
 					if(new_msg != ''){
 					    ws.send(send_txt_msg(roomid, new_msg));
@@ -411,6 +413,8 @@ ws.on('message', async (data) => {
 							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 							console.log(`对外文件地址：${fileUrl}`);
 							repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
+						}else{
+							 repmsg = '暂不支持该引用类型';
 						}
 					    let new_msg = await processMessage(repmsg,roomid);
 					    if(new_msg != ''){
