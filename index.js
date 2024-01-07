@@ -427,29 +427,7 @@ ws.on('message', async (data) => {
 				const month = String(currentDate.getMonth() + 1).padStart(2, '0');
 				const yearMonth = `${year}-${month}`;
 				let detailFilePath = path.join(path.resolve('./WeChat Files'),BOT_WXID, 'FileStorage', 'File', yearMonth , attName);
-				checkFileExists(detailFilePath)
-				    .then(exists => {
-				        if (exists) {
-				            console.log('原文件存在');
-							const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
-							let file_dir = path.dirname(saveFileDir);
-							if (!fs.existsSync(file_dir)) {
-							    // 如果目标目录不存在，创建它
-							    fs.mkdirSync(file_dir, { recursive: true });
-							}
-							fs.copyFileSync(detailFilePath, saveFileDir);
-							// 延迟1分钟后删除文件
-							setTimeout(() => {
-								fs.unlink(detailFilePath, (err) => {
-									if (err) {
-										console.error('删除本地文件错误:', err);
-									} else {
-										console.log('本地文件已删除:', detailFilePath);
-									}
-								});
-							}, 10000);
-				        }
-				    });
+				checkFileAndCopy(detailFilePath, attMd5, attName);
 			}
 			break;
         case HEART_BEAT:
@@ -508,6 +486,40 @@ async function checkFileExists(filePath) {
     } catch (error) {
         return false; // 文件不存在
     }
+}
+
+function checkFileAndCopy(detailFilePath, attMd5, attName, attempts = 0) {
+    checkFileExists(detailFilePath).then(exists => {
+        if (exists) {
+            console.log('原文件存在');
+            const saveFileDir = path.join(path.resolve('./WeChat Files/file'), attMd5, attName);
+            let file_dir = path.dirname(saveFileDir);
+            if (!fs.existsSync(file_dir)) {
+                // 如果目标目录不存在，创建它
+                fs.mkdirSync(file_dir, { recursive: true });
+            }
+            fs.copyFileSync(detailFilePath, saveFileDir);
+            // 延迟10秒后删除文件
+            setTimeout(() => {
+                fs.unlink(detailFilePath, (err) => {
+                    if (err) {
+                        console.error('删除本地文件错误:', err);
+                    } else {
+                        console.log('本地文件已删除:', detailFilePath);
+                    }
+                });
+            }, 10000);
+        } else if (attempts < 3) {
+            // 如果文件不存在，等待3秒后重试，最多重试3次
+            console.log('文件不存在, 正在重试...');
+            setTimeout(() => {
+                checkFileAndCopy(detailFilePath, attMd5, attName, attempts + 1);
+            }, 3000);
+        } else {
+            // 如果连续3次重试仍然失败，放弃
+            console.log('重试3次后文件仍然不存在，放弃操作。');
+        }
+    });
 }
 
 ws.on('close', function close() {
