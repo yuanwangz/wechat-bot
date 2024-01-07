@@ -153,7 +153,7 @@ async function processMessage(msg, roomid) {
     // 移除包含特定关键词的Markdown代码块
     let cleanedMsg = msg.replace(/```[\s\S]*?(prompt|search\(|mclick\()[\s\S]*?```/g, '');
 
-    const resultMarkdownRegex = /^```[\s\S]*?Result:[\s\S]*?```[\s\S]*?```/m;
+    const resultMarkdownRegex = /^```[\s\S]*?Result:[\s\S]*?```[\s\S]*?```/gm;
     cleanedMsg = cleanedMsg.replace(resultMarkdownRegex, '');
 
     // 提取图片链接
