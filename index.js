@@ -386,9 +386,9 @@ ws.on('message', async (data) => {
 						//文件
 						let refContent = refermsg.content;
 						const contentResult = await parseXml(refContent);
-						if(contentResult.type == '19') {
+						if(contentResult.msg.appmsg.type == '19') {
 							//聊天记录
-							let des = `{${contentResult.title}:[${contentResult.des}]}`;
+							let des = `{${contentResult.msg.appmsg.title}:[${contentResult.msg.appmsg.des}]}`;
 							repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,fileUrl,'');
 						}else {
 							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
@@ -422,9 +422,9 @@ ws.on('message', async (data) => {
 							let refContent = refermsg.content;
 							const contentResult = await parseXml(refContent);
 							console.log(contentResult);
-							if(contentResult.type == '19') {
+							if(contentResult.msg.appmsg.type == '19') {
 								//聊天记录
-								let des = `{${contentResult.title}:[${contentResult.des}]}`;
+								let des = `{${contentResult.msg.appmsg.title}:[${contentResult.msg.appmsg.des}]}`;
 								repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,fileUrl,'');
 							}else {
 								const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
