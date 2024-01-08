@@ -415,6 +415,7 @@ ws.on('message', async (data) => {
 							//文件
 							let refContent = refermsg.content;
 							const contentResult = await parseXml(refContent);
+							console.log(contentResult);
 							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 							console.log(`对外文件地址：${fileUrl}`);
 							repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl,'');
@@ -433,6 +434,16 @@ ws.on('message', async (data) => {
 					}
 				}
 			}else if(msg_type == '6') {
+				//附件消息
+				let attName = result.msg.appmsg.title;
+				let attMd5 = result.msg.appmsg.md5;
+				const currentDate = new Date();
+				const year = currentDate.getFullYear();
+				const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+				const yearMonth = `${year}-${month}`;
+				let detailFilePath = path.join(path.resolve('./WeChat Files'),BOT_WXID, 'FileStorage', 'File', yearMonth , attName);
+				checkFileAndCopy(detailFilePath, attMd5, attName);
+			}else if(msg_type == '19') {
 				//附件消息
 				let attName = result.msg.appmsg.title;
 				let attMd5 = result.msg.appmsg.md5;
