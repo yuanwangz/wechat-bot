@@ -389,7 +389,7 @@ ws.on('message', async (data) => {
 						if(contentResult.msg.appmsg.type == '19') {
 							//聊天记录
 							let des = `{${contentResult.msg.appmsg.title}:[${contentResult.msg.appmsg.des}]}`;
-							repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,fileUrl,'');
+							repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,'','');
 						}else {
 							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 							console.log(`对外文件地址：${fileUrl}`);
@@ -425,7 +425,7 @@ ws.on('message', async (data) => {
 							if(contentResult.msg.appmsg.type == '19') {
 								//聊天记录
 								let des = `{${contentResult.msg.appmsg.title}:[${contentResult.msg.appmsg.des}]}`;
-								repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,fileUrl,'');
+								repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,'','');
 							}else {
 								const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 								console.log(`对外文件地址：${fileUrl}`);
