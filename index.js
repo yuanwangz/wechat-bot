@@ -332,7 +332,7 @@ ws.on('message', async (data) => {
 				    ws.send(send_txt_msg(roomid, msg));
 				}else{
 				    // userid, nick, roomid, msgcontent
-				    const msg = await chatgptReply(roomid, userid, nick, msgcontent,'')
+				    const msg = await chatgptReply(roomid, userid, nick, msgcontent,'','')
 				    //    await  send_txt_msg1(j.wxid, j.content)
 				    // const new_msg = await containsTextFileLine(msg)
 				    let new_msg = await processMessage(msg,roomid);
@@ -346,7 +346,7 @@ ws.on('message', async (data) => {
 				if(j.content.startsWith(atplx)){
 					const raw_msg = j.content.replace(atplx, '').trim()
 				    // userid, nick, roomid, msgcontent
-				    const msg = await chatgptReply(roomid, userid, nick, raw_msg,'')
+				    const msg = await chatgptReply(roomid, userid, nick, raw_msg,'','')
 				    //    await  send_txt_msg1(j.wxid, j.content)
 				    // const new_msg = await containsTextFileLine(msg)
 				    let new_msg = await processMessage(msg,roomid);
@@ -381,14 +381,19 @@ ws.on('message', async (data) => {
                         //图片
                         const fileUrl = await processImageMessage(refermsg);
                         console.log(`对外文件地址：${fileUrl}`);
-                        repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
+                        repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl,'');
                     }else if (refermsg.type == '49'){
 						//文件
 						let refContent = refermsg.content;
 						const contentResult = await parseXml(refContent);
 						const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 						console.log(`对外文件地址：${fileUrl}`);
-                        repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
+                        repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl,'');
+                    }else if (refermsg.type == '1'){
+						//文本
+						let refContent = refermsg.content;
+						refContent = refContent.replace(/^@[^ ]+\s/, "");
+                        repmsg = await chatgptReply(roomid, userid, nick, msgcontent,'',refContent);
                     }else{
 						 repmsg = '暂不支持该引用类型';
 					}
@@ -405,14 +410,19 @@ ws.on('message', async (data) => {
                             //图片
                             const fileUrl = await processImageMessage(refermsg);
                             console.log(`对外文件地址：${fileUrl}`);
-                            repmsg = await chatgptReply(roomid, userid, nick, raw_msg,fileUrl);
+                            repmsg = await chatgptReply(roomid, userid, nick, raw_msg,fileUrl,'');
                         }else if (refermsg.type == '49'){
 							//文件
 							let refContent = refermsg.content;
 							const contentResult = await parseXml(refContent);
 							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 							console.log(`对外文件地址：${fileUrl}`);
-							repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl);
+							repmsg = await chatgptReply(roomid, userid, nick, msgcontent,fileUrl,'');
+						}else if (refermsg.type == '1'){
+							//文本
+							let refContent = refermsg.content;
+							refContent = refContent.replace(/^@[^ ]+\s/, "");
+							repmsg = await chatgptReply(roomid, userid, nick, msgcontent,'',refContent);
 						}else{
 							 repmsg = '暂不支持该引用类型';
 						}
@@ -472,7 +482,9 @@ ws.on('message', async (data) => {
 });
 
 async function processImageMessage(refermsg) {
-    let refermsg_result = await parseXml(refermsg.content);
+	let refContent = refermsg.content;
+	refContent = refContent.replace(/^.*?(?=&lt;\?xml version="1.0"\?&gt;)/, "");
+    let refermsg_result = await parseXml(refContent);
     let refFileDir = path.join(path.resolve('./WeChat Files/file'), refermsg_result.msg.img.$.md5);
     let refFilePath = getFirstFilePath(refFileDir);
     let filename = refFilePath.split('/').pop();

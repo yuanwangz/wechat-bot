@@ -13,7 +13,7 @@ const systemMessage = {
 
 const conversationPool = new Map();
 
-async function chatgptReply(wxid, id, nick, rawmsg,file) {
+async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
   console.log(`chat:${wxid}-------${id}\nrawmsg: ${rawmsg}`);
   let response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
   if (rawmsg === "清除所有对话" && id === "wxid_8wat4euufsc522") {
@@ -40,9 +40,20 @@ async function chatgptReply(wxid, id, nick, rawmsg,file) {
             ]
 	}
     const datatime = Date.now()
-    const messages = conversationPool.get(id) ?
-      [...conversationPool.get(id).messages, { role: 'user', content: rawmsg }] :
-      [systemMessage, { role: 'user', content: rawmsg }];
+	let messages;
+	if (conversationPool.get(id)) {
+	    messages = [...conversationPool.get(id).messages];
+	    if (addHis) {
+	        messages.push({ role: 'assistant', content: addHis });
+	    }
+	    messages.push({ role: 'user', content: rawmsg });
+	} else {
+	    messages = [systemMessage];
+	    if (addHis) {
+	        messages.push({ role: 'assistant', content: addHis });
+	    }
+	    messages.push({ role: 'user', content: rawmsg });
+	}
     const newMessage = { datatime: datatime, messages };
     const data = { model: OPENAI_MODEL, messages };
     let raw_response
