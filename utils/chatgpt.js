@@ -55,6 +55,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
 	    messages.push({ role: 'user', content: rawmsg });
 	}
     const newMessage = { datatime: datatime, messages };
+	console.log(JSON.stringify(newMessage));
     const data = { model: OPENAI_MODEL, messages };
     let raw_response
 
