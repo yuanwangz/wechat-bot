@@ -387,9 +387,14 @@ ws.on('message', async (data) => {
 						let refContent = refermsg.content;
 						const contentResult = await parseXml(refContent);
 						if(contentResult.msg.appmsg.type == '19') {
-							//聊天记录
-							let des = `{${contentResult.msg.appmsg.title}:[${contentResult.msg.appmsg.des}]}`;
-							repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,'','');
+                            //聊天记录
+                            let des = contentResult.msg.appmsg.des;
+                            if(!des) {
+                                let recorditem = await parseXml(contentResult.msg.appmsg.recorditem);
+                                des = recorditem.recordinfo.info;
+                            }
+                            des = `{${contentResult.msg.appmsg.title}:[${des}]}`;
+                            repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,'','');
 						}else {
 							const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
 							console.log(`对外文件地址：${fileUrl}`);
@@ -424,7 +429,12 @@ ws.on('message', async (data) => {
 							console.log(contentResult);
 							if(contentResult.msg.appmsg.type == '19') {
 								//聊天记录
-								let des = `{${contentResult.msg.appmsg.title}:[${contentResult.msg.appmsg.des}]}`;
+                                let des = contentResult.msg.appmsg.des;
+                                if(!des) {
+                                    let recorditem = await parseXml(contentResult.msg.appmsg.recorditem);
+                                    des = recorditem.recordinfo.info;
+                                }
+								des = `{${contentResult.msg.appmsg.title}:[${des}]}`;
 								repmsg = await chatgptReply(roomid, userid, nick, msgcontent+des,'','');
 							}else {
 								const fileUrl = `${BACKEND_URL}/${contentResult.msg.appmsg.md5}/${contentResult.msg.appmsg.title}`;
@@ -459,12 +469,14 @@ ws.on('message', async (data) => {
 				//附件消息
 				let attName = result.msg.appmsg.title;
 				let attMd5 = result.msg.appmsg.md5;
-				const currentDate = new Date();
-				const year = currentDate.getFullYear();
-				const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-				const yearMonth = `${year}-${month}`;
-				let detailFilePath = path.join(path.resolve('./WeChat Files'),BOT_WXID, 'FileStorage', 'File', yearMonth , attName);
-				checkFileAndCopy(detailFilePath, attMd5, attName);
+                if(attMd5) {
+                    const currentDate = new Date();
+                    const year = currentDate.getFullYear();
+                    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                    const yearMonth = `${year}-${month}`;
+                    let detailFilePath = path.join(path.resolve('./WeChat Files'),BOT_WXID, 'FileStorage', 'File', yearMonth , attName);
+                    checkFileAndCopy(detailFilePath, attMd5, attName);
+                }
 			}
 			break;
         case HEART_BEAT:
