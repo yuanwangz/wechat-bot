@@ -321,6 +321,9 @@ ws.on('message', async (data) => {
             userid = msgdata.wxid
             nick = msgdata.nick
             msgcontent = j.content
+            if(userid === 'newsapp') {
+                return;
+            }
             console.log({ userid, nick, roomid, msgcontent })
 			if(roomid == userid){
 				if(j.content.startsWith('/s')){
