@@ -5,10 +5,12 @@ dotenv.config()
 
 const API = process.env.PROXY_API ? process.env.PROXY_API : 'https://api.openai.com';
 const OPENAI_MODEL = process.env.OPENAI_API_MODEL ? process.env.OPENAI_API_MODEL : 'gpt-3.5-turbo-16k';
+const CUSTOM_PROMPT = process.env.CUSTOM_PROMPT ? process.env.CUSTOM_PROMPT : '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。';
+const ADMIN_WECHAT = process.env.ADMIN_WECHAT ? process.env.ADMIN_WECHAT : '';
 
 const systemMessage = {
   role: 'system',
-  content: '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言和灵活运用emoji表情与人交流，你的用户是中国用户，优先以中文与人交流，当需要你提供代码时，优先以文件的形式发送。',
+  content: CUSTOM_PROMPT,
 }
 
 const conversationPool = new Map();
@@ -16,12 +18,12 @@ const conversationPool = new Map();
 async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
   console.log(`chat:${wxid}-------${id}\nrawmsg: ${rawmsg}`);
   let response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
-  if (rawmsg === "清除所有对话" && id === "wxid_8wat4euufsc522") {
+  if (rawmsg === "清除所有对话" && id === ADMIN_WECHAT) {
     conversationPool.clear()
     response = `所有的对话已清空`
     return response
   } else if (rawmsg === "结束对话") {
-    conversationPool.delete(id);
+    conversationPool.delete(wxid);
     response = `${nick}的对话已结束`
     return response
   } else {
@@ -41,8 +43,8 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
 	}
     const datatime = Date.now()
 	let messages;
-	if (conversationPool.get(id)) {
-	    messages = [...conversationPool.get(id).messages];
+	if (conversationPool.get(wxid)) {
+	    messages = [...conversationPool.get(wxid).messages];
 	    if (addHis) {
 	        messages.push({ role: 'assistant', content: addHis });
 	    }
@@ -77,9 +79,9 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
         console.log(`chat:${wxid}------${id}\nresponse: ${response.content}`);
         // 只有在成功获取到回复时，才将原始消息添加到对话池中
         if (response) {
-          conversationPool.set(id, newMessage);
+          conversationPool.set(wxid, newMessage);
         }
-        conversationPool.get(id).messages.push(response);
+        conversationPool.get(wxid).messages.push(response);
         return `${response.content}`;
       } else {
         console.log('Invalid response:', raw_response);
