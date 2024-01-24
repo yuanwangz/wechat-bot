@@ -169,6 +169,11 @@ async function processMessage(msg, roomid) {
 
         // 图片下载和处理的代码
         let filename = imageUrl.split('/').pop();
+		const queryIndex = filename.indexOf('?');
+		if (queryIndex !== -1) {
+		  // 如果包含参数部分，则截取文件名部分
+		  filename = filename.substring(0, queryIndex);
+		}
         // 定义一个图片类型的扩展名数组
         const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg'];
         const fileExtension = filename.split('.').pop().toLowerCase();
