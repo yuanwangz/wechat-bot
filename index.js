@@ -157,8 +157,12 @@ async function processMessage(msg, roomid) {
     cleanedMsg = cleanedMsg.replace(resultMarkdownRegex, '');
 
     // 提取图片链接
-    const imageRegex = /\[下载[^\]]*\]\((.*?)\)/g;
-    const matches = [...cleanedMsg.matchAll(imageRegex)];
+    let imageRegex = /\[下载[^\]]*\]\((.*?)\)/g;
+    let matches = [...cleanedMsg.matchAll(imageRegex)];
+    if (matches.length == 0){
+    	imageRegex = /!\[[^\]]*\]\((.*?)\)/g;
+    	matches = [...cleanedMsg.matchAll(imageRegex)];
+    }
     if (matches.length > 0) {
         const imageUrl = matches[0][1]; // 取第一个匹配项的URL
         console.log(imageUrl);
@@ -206,6 +210,7 @@ async function processMessage(msg, roomid) {
 
     // 移除包含 ![image] 的行和前后的空白行
     cleanedMsg = cleanedMsg.replace(/^\s*.*\!\[image\].*\n/gm, '');
+	cleanedMsg = cleanedMsg.replace(/^\s*(!\[[^\]]*\]\([^)]*\))\s*$/gm, '');
 
     cleanedMsg = cleanedMsg.replace(/[^。]*?\[下载[^\]]*\]\((.*?)\)[^)]*?/g, '');
 
