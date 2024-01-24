@@ -4,10 +4,11 @@ import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-d
 import chokidar from 'chokidar';
 dotenv.config()
 
-const API = process.env.PROXY_API ? process.env.PROXY_API : 'https://api.openai.com';
-const OPENAI_MODEL = process.env.OPENAI_API_MODEL ? process.env.OPENAI_API_MODEL : 'gpt-3.5-turbo-16k';
-const CUSTOM_PROMPT = process.env.CUSTOM_PROMPT ? process.env.CUSTOM_PROMPT : '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。';
-const ADMIN_WECHAT = process.env.ADMIN_WECHAT ? process.env.ADMIN_WECHAT : '';
+let API = process.env.PROXY_API ? process.env.PROXY_API : 'https://api.openai.com';
+let OPENAI_MODEL = process.env.OPENAI_API_MODEL ? process.env.OPENAI_API_MODEL : 'gpt-3.5-turbo-16k';
+let CUSTOM_PROMPT = process.env.CUSTOM_PROMPT ? process.env.CUSTOM_PROMPT : '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。';
+let ADMIN_WECHAT = process.env.ADMIN_WECHAT ? process.env.ADMIN_WECHAT : '';
+let API_KEY = process.env.OPENAI_API_KEY
 const watcher = chokidar.watch('.env');
 watcher.on('change', (path) => {
   console.log(`File ${path} has been changed`);
@@ -17,6 +18,11 @@ watcher.on('change', (path) => {
   delete process.env.ADMIN_WECHAT;
   delete process.env.OPENAI_API_KEY;
   dotenv.config();
+  API = process.env.PROXY_API ? process.env.PROXY_API : 'https://api.openai.com';
+  OPENAI_MODEL = process.env.OPENAI_API_MODEL ? process.env.OPENAI_API_MODEL : 'gpt-3.5-turbo-16k';
+  CUSTOM_PROMPT = process.env.CUSTOM_PROMPT ? process.env.CUSTOM_PROMPT : '你是ChatGPT, 一个由OpenAI训练的大型语言模型, 你旨在回答并解决人们的任何问题，并且可以使用多种语言与人交流。';
+  ADMIN_WECHAT = process.env.ADMIN_WECHAT ? process.env.ADMIN_WECHAT : '';
+  API_KEY = process.env.OPENAI_API_KEY
 });
 const systemMessage = {
   role: 'system',
@@ -74,7 +80,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
       raw_response = await requestPromise({
         url: `${API}/v1/chat/completions`,
         headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${API_KEY}`,
           'Content-Type': 'application/json',
           'User-Agent': 'bot'
         },
