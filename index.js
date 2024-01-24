@@ -179,6 +179,7 @@ async function processMessage(msg, roomid) {
         const fileExtension = filename.split('.').pop().toLowerCase();
 
         if (imageExtensions.includes(fileExtension)) {
+			filename = filename.replace(/[^\u4e00-\u9fa5\w\d.]/g, '');
             filename = filename.replace(/\.[^/.]+$/, '.jpg');
         }
 
