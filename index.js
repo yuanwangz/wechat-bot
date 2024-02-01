@@ -10,6 +10,7 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 import express from 'express';
+import sharp from 'sharp';
 import crypto from 'crypto';
 import { parseString } from 'xml2js';
 dotenv.config()
@@ -84,8 +85,19 @@ async function downloadImage(url, targetPath) {
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-		const md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
-        await fsp.writeFile(targetPath, buffer);
+        let md5Hash;
+        if (response.headers.get('content-type').includes('image/webp')) {
+            // 处理WebP图片的下载逻辑
+            const image = sharp(buffer).jpeg();
+            await image.toFile(targetPath);
+            md5Hash = crypto.createHash('md5').update(await fsp.readFile(targetPath)).digest('hex');
+        } else {
+            // 处理其他图片类型的下载逻辑
+            await fsp.writeFile(targetPath, buffer);
+            md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
+        }
+		// const md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
+        // await fsp.writeFile(targetPath, buffer);
         console.log('Image successfully downloaded and saved to', targetPath+",md5:"+md5Hash);
 		return md5Hash;
     } catch (error) {
@@ -164,7 +176,9 @@ async function processMessage(msg, roomid) {
     	matches = [...cleanedMsg.matchAll(imageRegex)];
     }
     if (matches.length > 0) {
-        const imageUrl = matches[0][1]; // 取第一个匹配项的URL
+        let imageUrl = matches[0][1]; // 取第一个匹配项的URL
+        const match = imageUrl.match(/\$\{(.+?)\}/);
+        imageUrl = match ? match[1] : imageUrl;
         console.log(imageUrl);
 
         // 图片下载和处理的代码
@@ -175,7 +189,7 @@ async function processMessage(msg, roomid) {
 		  filename = filename.substring(0, queryIndex);
 		}
         // 定义一个图片类型的扩展名数组
-        const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg'];
+        const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg','webp'];
         const fileExtension = filename.split('.').pop().toLowerCase();
 
         if (imageExtensions.includes(fileExtension)) {

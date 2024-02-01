@@ -32,6 +32,7 @@
     "node-schedule": "^2.1.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
+    "sharp": "^0.33.2",
     "ws": "^8.14.2",
     "xml2js": "^0.6.2"
   },
