@@ -179,6 +179,7 @@ async function processMessage(msg, roomid) {
         let imageUrl = matches[0][1]; // 取第一个匹配项的URL
         const match = imageUrl.match(/\$\{(.+?)\}/);
         imageUrl = match ? match[1] : imageUrl;
+        imageUrl = decodeURIComponent(imageUrl);
         console.log(imageUrl);
 
         // 图片下载和处理的代码
