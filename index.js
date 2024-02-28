@@ -281,7 +281,7 @@ async function processMessage(msg, roomid) {
     cleanedMsg = cleanedMsg.replace(/^\s*\n/gm, '');
 
     const codeBlocks = cleanedMsg.match(/```[\s\S]*?```/g);
-    if (codeBlocks.length > 0) {
+    if (codeBlocks && codeBlocks.length > 0) {
         const cleanCodeBlocks = codeBlocks.map(block => {
             const lines = block.split('\n');
             // 去掉第一行和最后一行（反引号行）
