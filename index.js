@@ -13,6 +13,7 @@ import express from 'express';
 import sharp from 'sharp';
 import crypto from 'crypto';
 import { parseString } from 'xml2js';
+import axios from 'axios';
 dotenv.config()
 import {
     get_personal_info,
@@ -66,6 +67,44 @@ const NEW_FRIEND_REQUEST = 37;//微信好友请求消息
 const AGREE_TO_FRIEND_REQUEST = 10000;//同意微信好友请求消息
 const ATTATCH_FILE = 5003;
 
+
+async function generateImageFromCode(code,roomid) {
+    if (code.length > 200) {
+        const response = await axios.post('https://carbonara.solopov.dev/api/cook', {
+            code: code,
+            backgroundColor: "#1F816D"
+        }, {
+            responseType: 'arraybuffer'
+        });
+
+        const timestamp = Date.now();
+        const filename = `code_${timestamp}.png`;
+        const imagePath = path.resolve('upload', filename);
+        fs.writeFileSync(imagePath, response.data);
+        const fileBuffer = fs.readFileSync(imagePath);
+        const hash = crypto.createHash('md5');
+        hash.update(fileBuffer);
+        const md5Hash = hash.digest('hex');
+        ws.send(send_pic_msg(roomid, filename));
+        const saveFileDir = path.join(path.resolve('./WeChat Files/file'), md5Hash, filename);
+        let file_dir = path.dirname(saveFileDir);
+        if (!fs.existsSync(file_dir)) {
+            // 如果目标目录不存在，创建它
+            fs.mkdirSync(file_dir, { recursive: true });
+        }
+        fs.copyFileSync(imagePath, saveFileDir);
+        // 延迟1分钟后删除文件
+        setTimeout(() => {
+            fs.unlink(imagePath, (err) => {
+                if (err) {
+                    console.error('删除本地文件错误:', err);
+                } else {
+                    console.log('本地文件已删除:', imagePath);
+                }
+            });
+        }, 10000);
+    }
+}
 async function downloadImage(url, targetPath) {
     try {
         // 检查目录是否存在
@@ -240,6 +279,18 @@ async function processMessage(msg, roomid) {
 
     // 移除开头的空行
     cleanedMsg = cleanedMsg.replace(/^\s*\n/gm, '');
+
+    const codeBlocks = cleanedMsg.match(/```[\s\S]*?```/g);
+    const cleanCodeBlocks = codeBlocks.map(block => {
+        const lines = block.split('\n');
+        // 去掉第一行和最后一行（反引号行）
+        const codeLines = lines.slice(1, -1);
+        // 合并代码行
+        return codeLines.join('\n');
+    });
+    cleanCodeBlocks.forEach(code => {
+        generateImageFromCode(code,roomid);
+    });
     try {
         cleanedMsg = replaceLongUrlsWithDomain(cleanedMsg);
     }catch (e) {
