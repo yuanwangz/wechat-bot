@@ -281,16 +281,18 @@ async function processMessage(msg, roomid) {
     cleanedMsg = cleanedMsg.replace(/^\s*\n/gm, '');
 
     const codeBlocks = cleanedMsg.match(/```[\s\S]*?```/g);
-    const cleanCodeBlocks = codeBlocks.map(block => {
-        const lines = block.split('\n');
-        // 去掉第一行和最后一行（反引号行）
-        const codeLines = lines.slice(1, -1);
-        // 合并代码行
-        return codeLines.join('\n');
-    });
-    cleanCodeBlocks.forEach(code => {
-        generateImageFromCode(code,roomid);
-    });
+    if (codeBlocks.length > 0) {
+        const cleanCodeBlocks = codeBlocks.map(block => {
+            const lines = block.split('\n');
+            // 去掉第一行和最后一行（反引号行）
+            const codeLines = lines.slice(1, -1);
+            // 合并代码行
+            return codeLines.join('\n');
+        });
+        cleanCodeBlocks.forEach(code => {
+            generateImageFromCode(code, roomid);
+        });
+    }
     try {
         cleanedMsg = replaceLongUrlsWithDomain(cleanedMsg);
     }catch (e) {
