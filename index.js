@@ -414,7 +414,13 @@ ws.on('message', async (data) => {
 				    ws.send(send_txt_msg(roomid, msg));
 				}else{
 				    // userid, nick, roomid, msgcontent
-				    const msg = await chatgptReply(roomid, userid, nick, msgcontent,'','')
+					let msg ='';
+					if(msgcontent=='/绩效考核'){
+						let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
+						msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/'+wxid_md5;
+					}else{
+						msg = await chatgptReply(roomid, userid, nick, msgcontent,'','')
+					}
 				    //    await  send_txt_msg1(j.wxid, j.content)
 				    // const new_msg = await containsTextFileLine(msg)
 				    let new_msg = await processMessage(msg,roomid);
@@ -428,7 +434,13 @@ ws.on('message', async (data) => {
 				if(j.content.startsWith(atplx)){
 					const raw_msg = j.content.replace(atplx, '').trim()
 				    // userid, nick, roomid, msgcontent
-				    const msg = await chatgptReply(roomid, userid, nick, raw_msg,'','')
+					let msg ='';
+					if(msgcontent=='/绩效考核'){
+						let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
+						msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/'+wxid_md5;
+					}else{
+						msg = await chatgptReply(roomid, userid, nick, raw_msg,'','')
+					}
 				    //    await  send_txt_msg1(j.wxid, j.content)
 				    // const new_msg = await containsTextFileLine(msg)
 				    let new_msg = await processMessage(msg,roomid);
