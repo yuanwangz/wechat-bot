@@ -435,7 +435,7 @@ ws.on('message', async (data) => {
 					const raw_msg = j.content.replace(atplx, '').trim()
 				    // userid, nick, roomid, msgcontent
 					let msg ='';
-					if(msgcontent=='/绩效考核'){
+					if(raw_msg=='/绩效考核'){
 						let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
 						msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/'+wxid_md5;
 					}else{
