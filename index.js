@@ -400,7 +400,7 @@ ws.on('message', async (data) => {
             userid = msgdata.wxid
             nick = msgdata.nick
             msgcontent = j.content
-            if(userid === 'newsapp') {
+            if(userid === 'newsapp'||userid === 'weixin') {
                 return;
             }
             console.log({ userid, nick, roomid, msgcontent })
