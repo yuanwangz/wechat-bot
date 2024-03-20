@@ -125,7 +125,7 @@ async function downloadImage(url, targetPath) {
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         let md5Hash;
-        if (response.headers.get('content-type').includes('image/webp')) {
+        if (response.headers.get('content-type') && response.headers.get('content-type').includes('image/webp')) {
             // 处理WebP图片的下载逻辑
             const image = sharp(buffer).jpeg();
             await image.toFile(targetPath);
