@@ -246,7 +246,7 @@ async function processMessage(msg, roomid) {
         const imagePath = path.resolve('upload', filename);
 
         try {
-            const md5 = await downloadImage(imageUrl, imagePath);
+            const md5 = await downloadImage(originalUrl, imagePath);
 			if (imageExtensions.includes(fileExtension)) {
 			    ws.send(send_pic_msg(roomid, filename));
 			}else {
