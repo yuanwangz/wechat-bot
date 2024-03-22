@@ -218,6 +218,7 @@ async function processMessage(msg, roomid) {
         let imageUrl = matches[0][1]; // 取第一个匹配项的URL
         const match = imageUrl.match(/\$\{(.+?)\}/);
         imageUrl = match ? match[1] : imageUrl;
+        let originalUrl = imageUrl;
         imageUrl = decodeURIComponent(imageUrl);
         console.log(imageUrl);
 
@@ -238,7 +239,7 @@ async function processMessage(msg, roomid) {
         if (imageExtensions.includes(fileExtension)) {
             filename = filename.replace(/[^\u4e00-\u9fa5\w\d.]/g, '');
             filename = filename.replace(/\.[^/.]+$/, '.jpg');
-            cleanedMsg = cleanedMsg.replace(imageUrl, '');
+            cleanedMsg = cleanedMsg.replace(originalUrl, '');
         }
 
         const imagePath = path.resolve('upload', filename);
