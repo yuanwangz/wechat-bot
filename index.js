@@ -239,7 +239,7 @@ async function processMessage(msg, roomid) {
         if (imageExtensions.includes(fileExtension)) {
             filename = filename.replace(/[^\u4e00-\u9fa5\w\d.]/g, '');
             filename = filename.replace(/\.[^/.]+$/, '.jpg');
-            console.log("originalUrl:"+originalUrl);
+            console.log("原始originalUrl:",originalUrl);
             cleanedMsg = cleanedMsg.replace(originalUrl, '');
         }
 
