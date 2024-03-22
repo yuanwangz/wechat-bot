@@ -222,18 +222,21 @@ async function processMessage(msg, roomid) {
         console.log(imageUrl);
 
         // 图片下载和处理的代码
-        let filename = imageUrl.split('/').pop();
-		const queryIndex = filename.indexOf('?');
-		if (queryIndex !== -1) {
-		  // 如果包含参数部分，则截取文件名部分
-		  filename = filename.substring(0, queryIndex);
-		}
+        let filename;
+        const queryIndex = imageUrl.indexOf('?');
+        if (queryIndex !== -1) {
+            // 如果包含参数部分，则截取文件名部分
+            filename = imageUrl.substring(0, queryIndex);
+            filename = filename.split('/').pop();
+        }else {
+            filename = imageUrl.split('/').pop();
+        }
         // 定义一个图片类型的扩展名数组
         const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg','webp'];
         const fileExtension = filename.split('.').pop().toLowerCase();
 
         if (imageExtensions.includes(fileExtension)) {
-			filename = filename.replace(/[^\u4e00-\u9fa5\w\d.]/g, '');
+            filename = filename.replace(/[^\u4e00-\u9fa5\w\d.]/g, '');
             filename = filename.replace(/\.[^/.]+$/, '.jpg');
         }
 
