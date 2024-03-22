@@ -238,6 +238,7 @@ async function processMessage(msg, roomid) {
         if (imageExtensions.includes(fileExtension)) {
             filename = filename.replace(/[^\u4e00-\u9fa5\w\d.]/g, '');
             filename = filename.replace(/\.[^/.]+$/, '.jpg');
+            cleanedMsg = cleanedMsg.replace(imageUrl, '');
         }
 
         const imagePath = path.resolve('upload', filename);
