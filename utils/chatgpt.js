@@ -73,7 +73,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
 	    messages.push({ role: 'user', content: rawmsg });
 	}
     const newMessage = { datatime: datatime, messages };
-    const data = { model: OPENAI_MODEL, messages };
+    const data = { model: OPENAI_MODEL, messages, stream: "false" };
     let raw_response
 
     try {
