@@ -124,6 +124,18 @@ async function downloadImage(url, targetPath) {
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
+
+        // 获取文件名和文件的扩展名
+        let contentType = response.headers.get('content-type');
+        let extension = contentType.split('/')[1];
+        let imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg','webp'];
+        if (imageExtensions.includes(extension)) {
+            targetPath = targetPath+".jpg";
+            extension = ".jpg";
+        }else {
+            targetPath = `${targetPath}.${extension}`;
+        }
+
         let md5Hash;
         if (response.headers.get('content-type') && response.headers.get('content-type').includes('image/webp')) {
             // 处理WebP图片的下载逻辑
@@ -135,10 +147,12 @@ async function downloadImage(url, targetPath) {
             await fsp.writeFile(targetPath, buffer);
             md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
         }
-		// const md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
+        // const md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
         // await fsp.writeFile(targetPath, buffer);
+
         console.log('Image successfully downloaded and saved to', targetPath+",md5:"+md5Hash);
-		return md5Hash;
+        // 返回md5哈希和完整的目标路径
+        return {md5Hash, targetPath, extension};
     } catch (error) {
         console.error('Error occurred in downloadImage:', error);
         throw error;
@@ -218,35 +232,26 @@ async function processMessage(msg, roomid) {
         let imageUrl = matches[0][1]; // 取第一个匹配项的URL
         const match = imageUrl.match(/\$\{(.+?)\}/);
         imageUrl = match ? match[1] : imageUrl;
-        let originalUrl = imageUrl;
-        imageUrl = decodeURIComponent(imageUrl);
-        console.log(imageUrl);
+        let match_url = imageUrl.match(/(https?:\/\/[^ ]*)/);
+        if (match_url) {
+            imageUrl = match_url[1];
+        }
+        console.log('imageUrl:', imageUrl);
 
         // 图片下载和处理的代码
-        let filename;
-        const queryIndex = imageUrl.indexOf('?');
-        if (queryIndex !== -1) {
-            // 如果包含参数部分，则截取文件名部分
-            filename = imageUrl.substring(0, queryIndex);
-            filename = filename.split('/').pop();
-        }else {
-            filename = imageUrl.split('/').pop();
-        }
+        let filename = Date.now()+"";
         // 定义一个图片类型的扩展名数组
-        const imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg','webp'];
-        const fileExtension = filename.split('.').pop().toLowerCase();
+        let imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg','webp'];
+        cleanedMsg = cleanedMsg.replace(imageUrl, '');
 
-        if (imageExtensions.includes(fileExtension)) {
-            filename = filename.replace(/[^\u4e00-\u9fa5\w\d.]/g, '');
-            filename = filename.replace(/\.[^/.]+$/, '.jpg');
-            console.log("原始originalUrl:",originalUrl);
-            cleanedMsg = cleanedMsg.replace(originalUrl, '');
-        }
-
-        const imagePath = path.resolve('upload', filename);
+        let imagePath = path.resolve('upload', filename);
 
         try {
-            const md5 = await downloadImage(originalUrl, imagePath);
+            const result = await downloadImage(imageUrl, imagePath);
+            let md5 = result.md5Hash;
+            imagePath = result.targetPath;
+            filename = filename+"."+result.extension;
+            const fileExtension = filename.split('.').pop().toLowerCase();
 			if (imageExtensions.includes(fileExtension)) {
 			    ws.send(send_pic_msg(roomid, filename));
 			}else {
