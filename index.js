@@ -131,7 +131,7 @@ async function downloadImage(url, targetPath) {
         let imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg','webp'];
         if (imageExtensions.includes(extension)) {
             targetPath = targetPath+".jpg";
-            extension = ".jpg";
+            extension = "jpg";
         }else {
             targetPath = `${targetPath}.${extension}`;
         }
