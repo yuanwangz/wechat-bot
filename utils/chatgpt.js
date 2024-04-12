@@ -44,7 +44,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
     response = `${nick}的对话已结束`
     return response
   } else {
-    if(rawmsg.content.startsWith("写歌")) {
+    if(rawmsg.startsWith("写歌")) {
       rawmsg = rawmsg.replace("写歌","");
       temp_model = "suno";
     }
