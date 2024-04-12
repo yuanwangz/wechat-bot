@@ -132,7 +132,12 @@ async function downloadImage(url, targetPath) {
         if (imageExtensions.includes(extension)) {
             targetPath = targetPath+".jpg";
             extension = "jpg";
-        }else {
+        }else if (extension === 'octet-stream') {
+            let fileName = response.headers.get('content-disposition').split(';')[1].split('=')[1];
+            extension = fileName.split('.').pop();
+            targetPath = `${targetPath}.${extension}`;
+        }
+        else {
             targetPath = `${targetPath}.${extension}`;
         }
 
