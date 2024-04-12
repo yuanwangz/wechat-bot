@@ -34,6 +34,7 @@ const conversationPool = new Map();
 async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
   console.log(`chat:${wxid}-------${id}\nrawmsg: ${rawmsg}`);
   let response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
+  let temp_model = null;
   if (rawmsg === "清除所有对话" && id === ADMIN_WECHAT) {
     conversationPool.clear()
     response = `所有的对话已清空`
@@ -43,6 +44,10 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
     response = `${nick}的对话已结束`
     return response
   } else {
+    if(rawmsg.content.startsWith("写歌")) {
+      rawmsg = rawmsg.replace("写歌","");
+      temp_model = "suno";
+    }
 	if(file){
 		rawmsg = [
                 {
@@ -73,7 +78,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
 	    messages.push({ role: 'user', content: rawmsg });
 	}
     const newMessage = { datatime: datatime, messages };
-    const data = { model: OPENAI_MODEL, messages, stream: false };
+    const data = { model: temp_model==null?OPENAI_MODEL:temp_model, messages, stream: false };
     let raw_response
 
     try {
