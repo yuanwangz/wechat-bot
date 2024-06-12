@@ -86,8 +86,8 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
         url: `${API}/v1/chat/completions`,
         headers: {
           'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'bot'
+          'Content-Type': 'application/json'
+          // 'User-Agent': 'bot'
         },
         body: data,
         method: 'POST',
