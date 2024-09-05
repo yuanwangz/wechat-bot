@@ -9,6 +9,9 @@ export async function generatePromptAndContent(msgContent, groupName, startOfDay
 
     // 假设这个函数已经实现，并返回类似于 Go 代码中 rows 的结果
     const messages = await getGroupChatMessagesBySendTime(groupName, startOfDay, startOfNextDay);
+    if(messages.length<1){
+        return { prompt, submitContent };
+    }
     if (msgContent === "/统计性格") {
         prompt = `假设你是一名精通语言学与情感分析的专家，下面我给出某个群聊信息中所有人的姓名、说话的内容聊天记录信息，例如我有一名用户，输入个具体格式内容如下：
         用户1:
