@@ -22,8 +22,8 @@ export async function getGroupChatMessages(groupName, limit = 10) {
     try {
         console.log(`SELECT * FROM GroupChat WHERE GroupName = ${groupName} ORDER BY SendTime DESC LIMIT ${limit}`);
         const [rows] = await pool.execute(
-            'SELECT * FROM GroupChat WHERE GroupName = ? ORDER BY SendTime DESC LIMIT 5',
-            [groupName]
+            'SELECT * FROM GroupChat WHERE GroupName = ? ORDER BY SendTime DESC LIMIT ?',
+            [groupName,limit]
         );
         return rows;
     } catch (error) {
