@@ -60,7 +60,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis,prompt) {
 	}
     const datatime = Date.now()
 	let messages;
-    if(prompt!=''){
+    if(prompt){
       systemMessage = {
         role: 'system',
         content: prompt,
