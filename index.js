@@ -780,5 +780,8 @@ app.get('/file/:dir/:filename', async (req, res) => {
 
 const PORT = 5557;
 app.listen(PORT, () => {
+    process.env.TZ = 'Asia/Shanghai';
+    const now = new Date();
+    console.log(`date:${now}`)
     console.log(`Server running on port ${PORT}`);
 });
