@@ -20,10 +20,9 @@ export async function addGroupChatMessage(groupName, senderName, messageContent)
 
 export async function getGroupChatMessages(groupName, limit = 10) {
     try {
-        const parsedLimit = parseInt(limit, 10);
         const [rows] = await pool.execute(
             'SELECT * FROM GroupChat WHERE GroupName = ? ORDER BY SendTime DESC LIMIT ?',
-            [groupName,parsedLimit]
+            [groupName,parseInt(limit)]
         );
         return rows;
     } catch (error) {
