@@ -1,4 +1,5 @@
 import WebSocket from 'ws'
+import schedule from "node-schedule"
 import rp from 'request-promise'
 import chatgptReply from "./utils/chatgpt.js"
 import getFile from "./utils/dattofile.js"
@@ -14,6 +15,19 @@ import sharp from 'sharp';
 import crypto from 'crypto';
 import { parseString } from 'xml2js';
 import axios from 'axios';
+import {
+    addGroupChatMessage,
+    getGroupChatMessages,
+    getGroupChatMessagesBySendTime,
+    getBeijingDate,
+    addStockChange,
+    getStockChanges,
+    closePool
+} from './utils/dbOperations.js';
+import {
+    checkRecentMessages,
+    generatePromptAndContent
+} from './utils/msgutil.js';
 dotenv.config()
 import {
     get_personal_info,
@@ -406,9 +420,6 @@ ws.on('message', async (data) => {
             await getFile(j);
             break;
         case RECV_TXT_MSG:
-            // handle_recv_msg(j);
-            // console.log("11");
-            // ws.send("hello world");
             user_id = j.id1 ? j.id1 : j.wxid;
             raw_msgdata = await get_member_nick(user_id, j.wxid)
             msgdata = JSON.parse(raw_msgdata.content)
@@ -421,52 +432,79 @@ ws.on('message', async (data) => {
             }
             console.log({ userid, nick, roomid, msgcontent })
 			if(roomid == userid){
-				if(j.content.startsWith('/s')){
-				    const raw_msg = j.content.replace('/s', '').trim()
-				    // userid, nick, roomid, msgcontent
-				    const msg = await sparkReply(roomid, userid, nick, raw_msg)
-				    //    await  send_txt_msg1(j.wxid, j.content)
-				    // const new_msg = await containsTextFileLine(msg)
-				    ws.send(send_txt_msg(roomid, msg));
-				}else{
-				    // userid, nick, roomid, msgcontent
-					let msg ='';
-					if(msgcontent=='/绩效考核'){
-						let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
-						msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/'+wxid_md5;
-					}else{
-						msg = await chatgptReply(roomid, userid, nick, msgcontent,'','')
-					}
-				    //    await  send_txt_msg1(j.wxid, j.content)
-				    // const new_msg = await containsTextFileLine(msg)
-				    let new_msg = await processMessage(msg,roomid);
-				    if(new_msg != ''){
-				        ws.send(send_txt_msg(roomid, new_msg));
-				    }
-				}
+                // userid, nick, roomid, msgcontent
+                let msg ='';
+                if(msgcontent=='/绩效考核'){
+                    let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
+                    msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/'+wxid_md5;
+                }else{
+                    msg = await chatgptReply(roomid, userid, nick, msgcontent,'','')
+                }
+                //    await  send_txt_msg1(j.wxid, j.content)
+                // const new_msg = await containsTextFileLine(msg)
+                let new_msg = await processMessage(msg,roomid);
+                if(new_msg != ''){
+                    ws.send(send_txt_msg(roomid, new_msg));
+                }
 				
 			}else{
-				atplx='@'+BOT_NICKNAME+'';
-				if(j.content.startsWith(atplx)){
-					const raw_msg = j.content.replace(atplx, '').trim()
-				    // userid, nick, roomid, msgcontent
-					let msg ='';
-					if(raw_msg=='/绩效考核'){
-						let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
-						msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/'+wxid_md5;
-					}else{
-						msg = await chatgptReply(roomid, userid, nick, raw_msg,'','')
-					}
-				    //    await  send_txt_msg1(j.wxid, j.content)
-				    // const new_msg = await containsTextFileLine(msg)
-				    let new_msg = await processMessage(msg,roomid);
-				    if(new_msg != ''){
-						// new_msg = `${raw_msg} \n ------------------------ \n`+new_msg;
-				        // ws.send(send_txt_msg(roomid, new_msg));
-                        ws.send(send_at_msg(roomid,userid,new_msg,nick));
-				    }
-				}
-			}
+                const atplx = '@' + BOT_NICKNAME + '';
+                await addGroupChatMessage(roomid, nick, j.content);
+
+                // 获取消息内容，去掉 @ 机器人的前缀
+                const raw_msg = j.content.replace(atplx, '').trim();
+                let msg = '';
+
+                // 判断消息是否以 `/` 开头
+                if (raw_msg.startsWith('/')) {
+                    // 匹配特定的指令进行处理
+                    if (raw_msg === '/统计主题' || raw_msg === '/统计性格' || raw_msg === '/总结') {
+                        const now = getBeijingDate();
+                        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        const startOfNextDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+                        // 生成 prompt 和内容
+                        const { prompt, submitContent } = await generatePromptAndContent(raw_msg, roomid, startOfDay, startOfNextDay);
+
+                        // 使用 chatgptReply 进行回复
+                        msg = await chatgptReply(roomid, userid, nick, submitContent, '', '', prompt);
+                    } else if (raw_msg === '/绩效考核') {
+                        let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
+                        msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/' + wxid_md5;
+                    } else {
+                        // 不匹配的指令，什么都不做
+                        msg = '';
+                    }
+
+                    // 如果生成了回复消息，处理并发送
+                    if (msg !== '') {
+                        let new_msg = await processMessage(msg, roomid);
+                        if (new_msg !== '') {
+                            ws.send(send_at_msg(roomid, userid, new_msg, nick));
+                        }
+                    }
+                } else {
+                    // 如果消息没有以 `/` 开头，只有当消息 @ 了机器人时才处理
+                    if (j.content.startsWith(atplx)) {
+                        // 使用 chatgptReply 处理非指令的 @ 消息
+                        msg = await chatgptReply(roomid, userid, nick, raw_msg, '', '');
+
+                        // 处理生成的回复消息
+                        let new_msg = await processMessage(msg, roomid);
+                        if (new_msg !== '') {
+                            ws.send(send_at_msg(roomid, userid, new_msg, nick));
+                        }
+                    } else {
+                        // 非 @ 消息，检查最近消息的一致性
+                        const same_msg = await checkRecentMessages(roomid);
+
+                        // 如果最近的三条消息内容一致且不是 @ 机器人，发送该消息
+                        if (same_msg !== '' && !same_msg.startsWith(atplx)) {
+                            ws.send(send_txt_msg(roomid, same_msg));
+                        }
+                    }
+                }
+            }
             break;
 		case YY_MSG:
 			user_id = j.content.id2?j.content.id2:j.content.id1;
@@ -686,6 +724,32 @@ function checkFileAndCopy(detailFilePath, attMd5, attName, attempts = 0) {
 ws.on('close', function close() {
     console.log('disconnected');
 });
+
+schedule.scheduleJob('30 17 * * *', async function () {
+    console.log('总结群聊信息...');
+    const group_tips = process.env.GROUP_TIPS.split(",");
+    const now = getBeijingDate();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfNextDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+    for(let i =0 ;i<group_tips.length;i++){
+        // 生成 prompt 和内容
+        const {prompt, submitContent} = await generatePromptAndContent("/总结", group_tips[i], startOfDay, startOfNextDay);
+        if(submitContent == ''){
+            continue;
+        }
+        // 使用 chatgptReply 进行回复
+        let msg = await chatgptReply(group_tips[i], group_tips[i], group_tips[i], submitContent, '', '', prompt);
+        if (msg !== '') {
+            let new_msg = await processMessage(msg, group_tips[i]);
+            if (new_msg !== '') {
+                ws.send(send_txt_msg(group_tips[i], new_msg));
+            }
+        }
+    }
+
+});
+
 
 const basePath = path.resolve('./WeChat Files/file');
 

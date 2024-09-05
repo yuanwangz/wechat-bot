@@ -24,14 +24,14 @@ watcher.on('change', (path) => {
   ADMIN_WECHAT = process.env.ADMIN_WECHAT ? process.env.ADMIN_WECHAT : '';
   API_KEY = process.env.OPENAI_API_KEY
 });
-const systemMessage = {
+let systemMessage = {
   role: 'system',
   content: CUSTOM_PROMPT,
 }
 
 const conversationPool = new Map();
 
-async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
+async function chatgptReply(wxid, id, nick, rawmsg,file,addHis,prompt) {
   console.log(`chat:${wxid}-------${id}\nrawmsg: ${rawmsg}`);
   let response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
   let temp_model = null;
@@ -44,10 +44,6 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
     response = `${nick}的对话已结束`
     return response
   } else {
-    if(rawmsg.startsWith("写歌")) {
-      rawmsg = rawmsg.replace("写歌","");
-      temp_model = "suno";
-    }
 	if(file){
 		rawmsg = [
                 {
@@ -64,19 +60,31 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis) {
 	}
     const datatime = Date.now()
 	let messages;
-	if (conversationPool.get(wxid)) {
-	    messages = [...conversationPool.get(wxid).messages];
-	    if (addHis) {
-	        messages.push({ role: 'assistant', content: addHis });
-	    }
-	    messages.push({ role: 'user', content: rawmsg });
-	} else {
-	    messages = [systemMessage];
-	    if (addHis) {
-	        messages.push({ role: 'assistant', content: addHis });
-	    }
-	    messages.push({ role: 'user', content: rawmsg });
-	}
+    if(prompt!=''){
+      systemMessage = {
+        role: 'system',
+        content: prompt,
+      }
+      messages = [systemMessage];
+      if (addHis) {
+        messages.push({ role: 'assistant', content: addHis });
+      }
+      messages.push({ role: 'user', content: rawmsg });
+    }else{
+      if (conversationPool.get(wxid)) {
+        messages = [...conversationPool.get(wxid).messages];
+        if (addHis) {
+          messages.push({ role: 'assistant', content: addHis });
+        }
+        messages.push({ role: 'user', content: rawmsg });
+      } else {
+        messages = [systemMessage];
+        if (addHis) {
+          messages.push({ role: 'assistant', content: addHis });
+        }
+        messages.push({ role: 'user', content: rawmsg });
+      }
+    }
     const newMessage = { datatime: datatime, messages };
     const data = { model: temp_model==null?OPENAI_MODEL:temp_model, messages, stream: false };
     let raw_response
