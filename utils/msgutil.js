@@ -88,10 +88,18 @@ export async function checkRecentMessages(groupName) {
     const firstMessage = messages[0].MessageContent;
     const secondMessage = messages[1].MessageContent;
     const thirdMessage = messages[2].MessageContent;
+    let fourMessage = "";
+    if(messages.length > 3) {
+        fourMessage = messages[3].MessageContent;
+    }
 
     // 检查前三条消息的内容是否一致
     if (firstMessage === secondMessage && secondMessage === thirdMessage) {
-        return firstMessage; // 返回一致的消息内容
+        if(thirdMessage === fourMessage){
+            return '';
+        }else{
+            return firstMessage; // 返回一致的消息内容
+        }
     } else {
         return ''; // 否则返回空字符串
     }
