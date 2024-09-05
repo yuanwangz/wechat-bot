@@ -77,7 +77,7 @@ export async function generatePromptAndContent(msgContent, groupName, startOfDay
 // 新增的方法：检查最新的三条消息内容是否一致
 export async function checkRecentMessages(groupName) {
     // 获取最新的5条消息
-    const messages = await getGroupChatMessages(groupName,5);
+    const messages = await getGroupChatMessages(groupName);
 
     // 如果消息数量不足 3 条，直接返回空字符串
     if (messages.length < 3) {

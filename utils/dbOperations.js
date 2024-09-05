@@ -18,11 +18,11 @@ export async function addGroupChatMessage(groupName, senderName, messageContent)
     }
 }
 
-export async function getGroupChatMessages(groupName, limit = 10) {
+export async function getGroupChatMessages(groupName) {
     try {
         const [rows] = await pool.execute(
-            'SELECT * FROM GroupChat WHERE GroupName = ? ORDER BY SendTime DESC LIMIT ?',
-            [groupName,parseInt(limit)]
+            'SELECT * FROM GroupChat WHERE GroupName = ? ORDER BY SendTime DESC LIMIT 5',
+            [groupName]
         );
         return rows;
     } catch (error) {
