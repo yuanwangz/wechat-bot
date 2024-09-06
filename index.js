@@ -17,13 +17,11 @@ import { parseString } from 'xml2js';
 import axios from 'axios';
 import {
     addGroupChatMessage,
-    getGroupChatMessages,
-    getGroupChatMessagesBySendTime,
-    getBeijingDate,
-    addStockChange,
-    getStockChanges,
-    closePool
+    getBeijingDate
 } from './utils/dbOperations.js';
+import {
+    get_news
+} from './utils/news.js';
 import {
     checkRecentMessages,
     generatePromptAndContent
@@ -457,6 +455,7 @@ ws.on('message', async (data) => {
 
                 // 判断消息是否以 `/` 开头
                 if (raw_msg.startsWith('/')) {
+                    let isat = false;
                     // 匹配特定的指令进行处理
                     if (raw_msg === '/统计主题' || raw_msg === '/统计性格' || raw_msg === '/总结') {
                         const now = getBeijingDate();
@@ -471,16 +470,20 @@ ws.on('message', async (data) => {
                     } else if (raw_msg === '/绩效考核') {
                         let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
                         msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/' + wxid_md5;
+                        isat = true;
                     } else {
-                        // 不匹配的指令，什么都不做
-                        msg = '';
+                        msg = await get_news(raw_msg);
                     }
 
                     // 如果生成了回复消息，处理并发送
                     if (msg !== '') {
-                        let new_msg = await processMessage(msg, roomid);
+                        let new_msg = msg;
                         if (new_msg !== '') {
-                            ws.send(send_at_msg(roomid, userid, new_msg, nick));
+                            if(isat){
+                                ws.send(send_at_msg(roomid, userid, new_msg, nick));
+                            }else{
+                                ws.send(send_txt_msg(roomid, new_msg));
+                            }
                         }
                     }
                 } else {
