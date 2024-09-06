@@ -35,14 +35,15 @@ export async function get_news(msgContent) {
         for (const sub of responseData.data.site.subs) {
             for (const item of sub.items) {
                 if (count > 10) break;
-
                 // 将Unix时间戳转换为JavaScript的日期格式
                 const t = new Date(item.add_date * 1000);
-                res += `${count}. ${item.title} [${t.toISOString().replace('T', ' ').substring(0, 19)}]   热度: ${item.more}\nhttps://www.anyknew.com/go/${item.iid}\n\n`;
+                // 检查是否有 "热度"
+                const heat = item.more ? `   热度: ${item.more}` : '';
+                // 拼接结果字符串
+                res += `${count}. ${item.title} [${t.toISOString().replace('T', ' ').substring(0, 19)}]${heat}\nhttps://www.anyknew.com/go/${item.iid}\n\n`;
                 count++;
             }
         }
-
         return res;
     } catch (error) {
         console.error(error);
