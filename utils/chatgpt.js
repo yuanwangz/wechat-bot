@@ -107,7 +107,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis,prompt) {
         const response = raw_response.data.choices[0].message;
         console.log(`chat:${wxid}------${id}\nresponse: ${response.content}`);
         // 只有在成功获取到回复时，才将原始消息添加到对话池中
-        if (response) {
+        if (response&&!prompt) {
           conversationPool.set(wxid, newMessage);
         }
         conversationPool.get(wxid).messages.push(response);
