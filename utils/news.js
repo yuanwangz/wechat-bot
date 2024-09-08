@@ -41,7 +41,7 @@ export async function get_news(msgContent) {
                 const heat = item.more ? `   热度: ${item.more}` : '';
                 // 拼接结果字符串
                 // res += `${count}. ${item.title} [${t.toISOString().replace('T', ' ').substring(0, 19)}]${heat}\nhttps://www.anyknew.com/go/${item.iid}\n\n`;
-                res += `${count}. ${item.title}\nhttps://www.anyknew.com/go/${item.iid}\n`;
+                res += `${count}. ${item.title} 🔥\nhttps://www.anyknew.com/go/${item.iid}\n`;
                 count++;
             }
         }
