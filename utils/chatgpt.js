@@ -61,11 +61,11 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis,prompt) {
     const datatime = Date.now()
 	let messages;
     if(prompt){
-      systemMessage = {
+      let newsystemMessage = {
         role: 'system',
         content: prompt,
       }
-      messages = [systemMessage];
+      messages = [newsystemMessage];
       if (addHis) {
         messages.push({ role: 'assistant', content: addHis });
       }
@@ -85,7 +85,7 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis,prompt) {
         messages.push({ role: 'user', content: rawmsg });
       }
     }
-    const newMessage = { datatime: datatime, messages };
+    let newMessage = { datatime: datatime, messages };
     const data = { model: temp_model==null?OPENAI_MODEL:temp_model, messages, stream: false };
     let raw_response
 
@@ -110,7 +110,9 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis,prompt) {
         if (response&&!prompt) {
           conversationPool.set(wxid, newMessage);
         }
-        conversationPool.get(wxid).messages.push(response);
+        if(!prompt){
+          conversationPool.get(wxid).messages.push(response);
+        }
         return `${response.content}`;
       } else {
         console.log('Invalid response:', raw_response);
