@@ -93,6 +93,7 @@ export async function get_hyxj(msgContent) {
         if(!response){
             return '';
         }
+        console.log(response);
         const svgContents = extractSvgContent(response);
         if(svgContents.length<1){
             return '';
