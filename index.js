@@ -20,6 +20,9 @@ import {
     getBeijingDate
 } from './utils/dbOperations.js';
 import {
+    get_hyxj
+} from './utils/hanyuxinjie.js.js';
+import {
     get_news
 } from './utils/news.js';
 import {
@@ -471,6 +474,10 @@ ws.on('message', async (data) => {
                         let wxid_md5 = crypto.createHash('md5').update(userid).digest('hex');
                         msg = '您的月度绩效考核填写地址是：https://bingai.12342234.xyz/assessment/' + wxid_md5;
                         isat = true;
+                    } else if (raw_msg.startsWith('/汉语新解')) {
+                        const word = j.content.replace('/汉语新解', '').trim();
+                        let img_path = get_hyxj(word);
+                        ws.send(send_file_msg(roomid, img_path));
                     } else {
                         msg = await get_news(raw_msg);
                     }
