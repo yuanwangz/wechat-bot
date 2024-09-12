@@ -111,15 +111,15 @@ export async function get_hyxj(msgContent) {
 
         // 保存文件的路径
         const filename = md5+'.jpg';
-        const saveFileDir = path.join(path.resolve('./WeChat Files/file'), md5, filename);
+        let imagePath = path.resolve('upload', filename);
 
         // 确保保存路径的目录存在
-        fs.mkdirSync(path.dirname(saveFileDir), { recursive: true });
+        fs.mkdirSync(path.dirname(imagePath), { recursive: true });
 
         // 保存图片
-        await writeFile(saveFileDir, jpgBuffer);
+        await writeFile(imagePath, jpgBuffer);
 
-        return saveFileDir;
+        return imagePath;
     } catch (error) {
         console.error('Error occurred:', error);
         return '';
