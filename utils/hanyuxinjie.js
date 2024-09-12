@@ -26,7 +26,7 @@ export async function get_hyxj(msgContent) {
             },
             data: postData
         });
-
+        console.log(response);
         const responseData = response.data;
 
         // 提取SVG数据
