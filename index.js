@@ -477,7 +477,10 @@ ws.on('message', async (data) => {
                     } else if (raw_msg.startsWith('/汉语新解')) {
                         const word = j.content.replace('/汉语新解', '').trim();
                         let img_path = await get_hyxj(word);
-                        ws.send(send_pic_msg(roomid, img_path));
+                        console.log(`img_path:${img_path}`)
+                        if(img_path){
+                            ws.send(send_pic_msg(roomid, img_path));
+                        }
                     } else {
                         msg = await get_news(raw_msg);
                     }
