@@ -21,7 +21,7 @@ import {
 } from './utils/dbOperations.js';
 import {
     get_hyxj
-} from './utils/hanyuxinjie.js.js';
+} from './utils/hanyuxinjie.js';
 import {
     get_news
 } from './utils/news.js';
@@ -476,7 +476,7 @@ ws.on('message', async (data) => {
                         isat = true;
                     } else if (raw_msg.startsWith('/汉语新解')) {
                         const word = j.content.replace('/汉语新解', '').trim();
-                        let img_path = get_hyxj(word);
+                        let img_path = await get_hyxj(word);
                         ws.send(send_file_msg(roomid, img_path));
                     } else {
                         msg = await get_news(raw_msg);
