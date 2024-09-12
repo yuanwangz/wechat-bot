@@ -8,7 +8,7 @@ import * as dotenv from 'dotenv';
 dotenv.config()
 let API = process.env.PROXY_API ? process.env.PROXY_API : 'https://api.openai.com';
 let API_KEY = process.env.OPENAI_API_KEY
-const writeFile = promisify(fs.writeFile);
+const writeFile = promisify(fs.writeFileSync);
 
 const extractSvgContent = (str) => {
     const svgRegex = /<svg[^>]*>([\s\S]*?)<\/svg>/g;
@@ -117,7 +117,7 @@ export async function get_hyxj(msgContent) {
         fs.mkdirSync(path.dirname(imagePath), { recursive: true });
 
         // 保存图片
-        await writeFile(imagePath, jpgBuffer);
+        writeFile(imagePath, jpgBuffer);
 
         const saveFileDir = path.join(path.resolve('./WeChat Files/file'), md5, filename);
         let file_dir = path.dirname(saveFileDir);
