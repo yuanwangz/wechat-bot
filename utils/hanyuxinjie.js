@@ -83,7 +83,6 @@ export async function get_hyxj(msgContent) {
 
         })
         let response ='';
-        console.log(raw_response)
         // 检查返回的数据是否包含 choices 字段
         if (raw_response.data.choices && raw_response.data.choices.length > 0) {
             response = raw_response.data.choices[0].message;
@@ -93,8 +92,8 @@ export async function get_hyxj(msgContent) {
         if(!response){
             return '';
         }
-        console.log(response);
-        const svgContents = extractSvgContent(response);
+        const svgContents = extractSvgContent(response.content);
+        console.log(svgContents.length)
         if(svgContents.length<1){
             return '';
         }
