@@ -103,14 +103,14 @@ export async function get_hyxj(msgContent) {
 
         // 将SVG转换为JPG
         const jpgBuffer = await sharp(Buffer.from(svgData))
-            .png({quality: 90})
+            .png({quality: 100})
             .toBuffer();
 
         // 计算文件的MD5值
         const md5 = crypto.createHash('md5').update(jpgBuffer).digest('hex');
 
         // 保存文件的路径
-        const filename = md5+'.jpg';
+        const filename = md5+'.png';
         let imagePath = path.resolve('upload', filename);
 
         // 确保保存路径的目录存在
