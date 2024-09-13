@@ -103,7 +103,7 @@ export async function get_hyxj(msgContent) {
 
         // 将SVG转换为JPG
         const jpgBuffer = await sharp(Buffer.from(svgData))
-            .jpeg()
+            .png({quality: 90})
             .toBuffer();
 
         // 计算文件的MD5值
