@@ -26,8 +26,8 @@ export async function get_hyxj(msgContent) {
         })
         let response ='';
         // 检查返回的数据是否包含 choices 字段
-        if (raw_response.image) {
-            response = raw_response.image;
+        if (raw_response.data.image) {
+            response = raw_response.data.image;
         } else {
             console.log('Invalid response:', raw_response);
         }
