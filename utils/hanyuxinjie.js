@@ -25,7 +25,7 @@ export async function get_hyxj(msgContent) {
 
         })
         let response ='';
-        raw_response = JSON.parse(raw_response);
+        raw_response = JSON.parse(JSON.stringify(raw_response));
         if (raw_response.data.image) {
             response = raw_response.data.image;
         } else {
