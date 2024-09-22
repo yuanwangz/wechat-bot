@@ -32,7 +32,7 @@ export async function get_hyxj(msgContent) {
         const md5 = crypto.createHash('md5').update(base64Data).digest('hex');
         console.log(md5)
         // 保存文件的路径
-        const filename = md5+'.png';
+        const filename = md5+'.jpg';
         let imagePath = path.resolve('upload', filename);
 
         // 确保保存路径的目录存在
