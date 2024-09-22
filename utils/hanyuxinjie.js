@@ -25,11 +25,10 @@ export async function get_hyxj(msgContent) {
 
         })
         let response ='';
-        console.log(raw_response.image)
         if (raw_response.image) {
             response = raw_response.image;
         } else {
-            console.log('Invalid response:', raw_response);
+            // console.log('Invalid response:', raw_response);
         }
         if(!response){
             return '';
