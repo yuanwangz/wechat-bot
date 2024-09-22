@@ -1,33 +1,27 @@
-import { requestPromise } from './req.js'; // 替换为实际的路径
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import sharp from 'sharp';  // 用于将 SVG 转换为 JPG
 import { promisify } from 'util';
 import * as dotenv from 'dotenv';
 dotenv.config()
 let API = process.env.PROXY_API ? process.env.PROXY_API : 'https://api.openai.com';
 let API_KEY = process.env.OPENAI_API_KEY
-const writeFile = promisify(fs.writeFileSync);
+
+const writeFile = promisify(fs.writeFile);
 
 // 获取数据并转换图片保存
 export async function get_hyxj(msgContent) {
     try {
-        const data = { text: msgContent, apiKey: API_KEY };
-        let raw_response = await requestPromise({
-            url: `http://bdjbt.12342234.xyz:3004/hanyuxinjie`,
-            headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
-            },
-            body: data,
+        const options = {
             method: 'POST',
-
-        })
+            headers: {'content-type': 'application/json'},
+            body: '{"text":"'+msgContent+'","apiKey":"'+API_KEY+'"}'
+        };
+        let raw_response = await fetch(`http://bdjbt.12342234.xyz:3004/hanyuxinjie`, options);
+        let result = await raw_response.json();  // 解析 JSON
         let response ='';
-        raw_response = JSON.parse(JSON.stringify(raw_response));
-        if (raw_response.data.image) {
-            response = raw_response.data.image;
+        if (result.image) {
+            response = result.image;
         } else {
             // console.log('Invalid response:', raw_response);
         }
@@ -36,8 +30,9 @@ export async function get_hyxj(msgContent) {
         }
         const base64Data = response.replace(/^data:image\/png;base64,/, '');
         const md5 = crypto.createHash('md5').update(base64Data).digest('hex');
+        console.log(md5)
         // 保存文件的路径
-        const filename = md5+'.jpg';
+        const filename = md5+'.png';
         let imagePath = path.resolve('upload', filename);
 
         // 确保保存路径的目录存在
@@ -50,9 +45,9 @@ export async function get_hyxj(msgContent) {
         let file_dir = path.dirname(saveFileDir);
         if (!fs.existsSync(file_dir)) {
             // 如果目标目录不存在，创建它
-            fs.mkdirSync(file_dir, { recursive: true });
+             fs.mkdirSync(file_dir, { recursive: true });
         }
-        fs.copyFileSync(imagePath, saveFileDir);
+        await fs.copyFileSync(imagePath, saveFileDir);
         // 延迟1分钟后删除文件
         setTimeout(() => {
             fs.unlink(imagePath, (err) => {
@@ -63,7 +58,6 @@ export async function get_hyxj(msgContent) {
                 }
             });
         }, 10000);
-
         return filename;
     } catch (error) {
         console.error('Error occurred:', error);
