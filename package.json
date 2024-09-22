@@ -33,6 +33,7 @@
     "node-replicate": "^2.0.0",
     "node-schedule": "^2.1.1",
     "parse-domain": "^8.0.2",
+    "punycode": "^2.3.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "sharp": "^0.33.5",
