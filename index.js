@@ -704,7 +704,7 @@ schedule.scheduleJob('30 17 * * *', async function () {
 
 });
 
-schedule.scheduleJob('00 09 * * *', async function () {
+schedule.scheduleJob('25 17 * * *', async function () {
     console.log('每日60秒看世界...');
     const news_tips = process.env.NEWS_TIPS.split(",");
     let filename = await getNews60();
