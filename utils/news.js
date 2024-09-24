@@ -84,6 +84,3 @@ export async function getNews60(){
     }, 10000);
     return filename;
 }
-
-let filename = await getNews60();
-console.log("img_path:"+filename)

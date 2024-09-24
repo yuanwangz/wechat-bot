@@ -64,6 +64,3 @@ export async function get_hyxj(msgContent) {
         return '';
     }
 }
-
-let imgpath = await get_hyxj("码农");
-console.log(imgpath);
