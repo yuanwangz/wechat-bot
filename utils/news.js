@@ -1,4 +1,8 @@
 import { requestPromise } from './req.js'; // 替换为实际的路径
+import {downloadImage} from "./file.js"
+import path from "path";
+import {send_file_msg, send_pic_msg} from "../server/client.js";
+import fs from "fs";
 
 // get_news函数，处理API返回的数据
 export async function get_news(msgContent) {
@@ -51,3 +55,35 @@ export async function get_news(msgContent) {
         return '';
     }
 }
+
+export async function getNews60(){
+    let url = 'https://api.jun.la/60s.php?format=image';
+    const timestamp = Date.now();
+    let filename = `news60_${timestamp}`;
+    let imagePath = path.resolve('upload', filename);
+    const result = await downloadImage(url,imagePath)
+    let md5 = result.md5Hash;
+    imagePath = result.targetPath;
+    filename = filename+"."+result.extension;
+    const saveFileDir = path.join(path.resolve('./WeChat Files/file'), md5, filename);
+    let file_dir = path.dirname(saveFileDir);
+    if (!fs.existsSync(file_dir)) {
+        // 如果目标目录不存在，创建它
+        fs.mkdirSync(file_dir, { recursive: true });
+    }
+    fs.copyFileSync(imagePath, saveFileDir);
+    // 延迟1分钟后删除文件
+    setTimeout(() => {
+        fs.unlink(imagePath, (err) => {
+            if (err) {
+                console.error('删除本地文件错误:', err);
+            } else {
+                console.log('本地文件已删除:', imagePath);
+            }
+        });
+    }, 10000);
+    return filename;
+}
+
+let filename = await getNews60();
+console.log("img_path:"+filename)

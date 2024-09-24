@@ -3,15 +3,13 @@ import schedule from "node-schedule"
 import rp from 'request-promise'
 import chatgptReply from "./utils/chatgpt.js"
 import getFile from "./utils/dattofile.js"
-import sparkReply from "./utils/sparkmsg.js"
+import {downloadImage} from "./utils/file.js"
 import { containsTextFileLine } from "./utils/checkword.js"
 import * as dotenv from 'dotenv' // see https://github.com/motdotla/dotenv#how-do-i-use-dotenv-with-import
-import fetch from 'node-fetch';
 import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 import express from 'express';
-import sharp from 'sharp';
 import crypto from 'crypto';
 import { parseString } from 'xml2js';
 import axios from 'axios';
@@ -23,7 +21,7 @@ import {
     get_hyxj
 } from './utils/hanyuxinjie.js';
 import {
-    get_news
+    get_news,getNews60
 } from './utils/news.js';
 import {
     checkRecentMessages,
@@ -120,64 +118,7 @@ async function generateImageFromCode(code,roomid) {
         }, 10000);
     }
 }
-async function downloadImage(url, targetPath) {
-    try {
-        // 检查目录是否存在
-        const dir = path.dirname(targetPath);
-        try {
-            await fsp.access(dir);
-        } catch (error) {
-            if (error.code === 'ENOENT') {
-                // 如果目录不存在，创建它
-                await fsp.mkdir(dir, { recursive: true });
-            } else {
-                throw error; // 重新抛出其他错误
-            }
-        }
 
-        // 下载图片
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-
-        // 获取文件名和文件的扩展名
-        let contentType = response.headers.get('content-type');
-        let extension = contentType.split('/')[1];
-        let imageExtensions = ['png', 'jpeg', 'gif', 'bmp', 'tiff','jpg','webp'];
-        if (imageExtensions.includes(extension)) {
-            targetPath = targetPath+".jpg";
-            extension = "jpg";
-        }else if (extension === 'octet-stream') {
-            let fileName = response.headers.get('content-disposition').split(';')[1].split('=')[1];
-            extension = fileName.split('.').pop();
-            targetPath = `${targetPath}.${extension}`;
-        }
-        else {
-            targetPath = `${targetPath}.${extension}`;
-        }
-
-        let md5Hash;
-        if (response.headers.get('content-type') && response.headers.get('content-type').includes('image/webp')) {
-            // 处理WebP图片的下载逻辑
-            const image = sharp(buffer).jpeg();
-            await image.toFile(targetPath);
-            md5Hash = crypto.createHash('md5').update(await fsp.readFile(targetPath)).digest('hex');
-        } else {
-            // 处理其他图片类型的下载逻辑
-            await fsp.writeFile(targetPath, buffer);
-            md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
-        }
-        // const md5Hash = crypto.createHash('md5').update(buffer).digest('hex');
-        // await fsp.writeFile(targetPath, buffer);
-
-        console.log('Image successfully downloaded and saved to', targetPath+",md5:"+md5Hash);
-        // 返回md5哈希和完整的目标路径
-        return {md5Hash, targetPath, extension};
-    } catch (error) {
-        console.error('Error occurred in downloadImage:', error);
-        throw error;
-    }
-}
 
 function replaceLongUrlsWithDomain(inputString) {
     const citationUrlRegex = /\[\[(\d+)\]\((https?:\/\/[^\s()<>]+(?:\([\w.]+\))?[^\s()<>]*)\)\]/g;
@@ -758,6 +699,19 @@ schedule.scheduleJob('30 17 * * *', async function () {
             if (new_msg !== '') {
                 ws.send(send_txt_msg(group_tips[i], new_msg));
             }
+        }
+    }
+
+});
+
+schedule.scheduleJob('00 09 * * *', async function () {
+    console.log('每日60秒看世界...');
+    const news_tips = process.env.NEWS_TIPS.split(",");
+    let filename = await getNews60();
+    console.log("img_path:"+filename)
+    for(let i =0 ;i<news_tips.length;i++){
+        if(filename){
+            ws.send(send_pic_msg(news_tips[i], filename));
         }
     }
 
