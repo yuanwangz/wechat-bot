@@ -391,7 +391,7 @@ ws.on('message', async (data) => {
 				
 			}else{
                 const atplx = '@' + BOT_NICKNAME + '';
-                await addGroupChatMessage(roomid, nick, j.content);
+                await addGroupChatMessage(roomid, nick, userid, j.content);
 
                 // 获取消息内容，去掉 @ 机器人的前缀
                 const raw_msg = j.content.replace(atplx, '').trim();

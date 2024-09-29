@@ -5,11 +5,11 @@ dotenv.config()
 const pool = mysql.createPool(process.env.DATABASE_URL);
 
 // GroupChat 操作
-export async function addGroupChatMessage(groupName, senderName, messageContent) {
+export async function addGroupChatMessage(groupName, senderName,senderWxid, messageContent) {
     try {
         const [result] = await pool.execute(
-            'INSERT INTO GroupChat (GroupName, SenderName, MessageContent) VALUES (?, ?, ?)',
-            [groupName, senderName, messageContent]
+            'INSERT INTO GroupChat (GroupName, SenderName, SenderWxid, MessageContent) VALUES (?, ?, ?, ?)',
+            [groupName, senderName, senderWxid, messageContent]
         );
         return result.insertId;
     } catch (error) {
