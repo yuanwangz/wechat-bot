@@ -86,50 +86,87 @@ async function chatgptReply(wxid, id, nick, rawmsg,file,addHis,prompt) {
       }
     }
     let newMessage = { datatime: datatime, messages };
-    const data = { model: temp_model==null?OPENAI_MODEL:temp_model, messages, stream: false };
-    let raw_response
-
+    let stream = true;
+    const data = { model: temp_model==null?OPENAI_MODEL:temp_model, messages, stream: stream };
+    let raw_response;
+    let response = '';
     try {
-      raw_response = await requestPromise({
-        url: `${API}/v1/chat/completions`,
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
-        },
-        body: data,
-        method: 'POST',
+      if (stream) {
+        // 流式响应处理
+        const streamResponse = await requestPromise({
+          url: `${API}/v1/chat/completions`,
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+          },
+          body: data,
+          method: 'POST',
+          responseType: 'arraybuffer'  // 使用 arraybuffer 来接收原始数据
+        });
 
-      })
+        // 将 arraybuffer 转换为字符串
+        const responseText = streamResponse.data.toString('utf-8');
 
-      // 检查返回的数据是否包含 choices 字段
-      if (raw_response.data.choices && raw_response.data.choices.length > 0) {
-        const response = raw_response.data.choices[0].message;
-        console.log(`chat:${wxid}------${id}\nresponse: ${response.content}`);
-        // 只有在成功获取到回复时，才将原始消息添加到对话池中
-        if (response&&!prompt) {
-          conversationPool.set(wxid, newMessage);
+        // 按行分割响应
+        const lines = responseText.split('\n');
+
+        for (const line of lines) {
+          if (line.trim() === 'data: [DONE]') {
+            break;
+          }
+          if (line.startsWith('data: ')) {
+            try {
+              const parsedData = JSON.parse(line.slice(6));
+              if (parsedData.choices && parsedData.choices.length > 0 && parsedData.choices[0].delta.content) {
+                response += parsedData.choices[0].delta.content;
+              }
+            } catch (error) {
+              console.error('Error parsing stream data:', error);
+            }
+          }
         }
-        if(!prompt){
-          conversationPool.get(wxid).messages.push(response);
-        }
-        return `${response.content}`;
       } else {
-        console.log('Invalid response:', raw_response);
-        response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
+        // 非流式响应处理
+        const nonStreamResponse = await requestPromise({
+          url: `${API}/v1/chat/completions`,
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1'
+          },
+          body: data,
+          method: 'POST'
+        });
+
+        if (nonStreamResponse.data.choices && nonStreamResponse.data.choices.length > 0) {
+          response = nonStreamResponse.data.choices[0].message.content;
+        } else {
+          console.log('Invalid response:', nonStreamResponse);
+          response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
+        }
       }
 
+      console.log(`chat:${wxid}------${id}\nresponse: ${response}`);
+
+      // 只有在成功获取到回复时，才将原始消息添加到对话池中
+      if (response && !prompt) {
+        conversationPool.set(wxid, newMessage);
+      }
+      if (!prompt) {
+        conversationPool.get(wxid).messages.push({ role: 'assistant', content: response });
+      }
     } catch (e) {
-      console.log(e);
-      if (raw_response.response.data) {
-        console.log(raw_response.response.data.error);
+      console.error('Error in processing:', e);
+      if (e.response && e.response.data) {
+        console.log(e.response.data.error);
       } else {
-        console.log(raw_response.response);
+        console.log(e.response || e);
       }
-      console.error(e);
+      response = '🤒🤒🤒出了一点小问题，请稍后重试下...';
     }
 
-    return response
+    return response;
   }
 
 }
