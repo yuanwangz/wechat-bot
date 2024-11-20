@@ -17,7 +17,7 @@ export async function get_hyxj(msgContent) {
             headers: {'content-type': 'application/json'},
             body: '{"text":"'+msgContent+'","apiKey":"'+API_KEY+'"}'
         };
-        let raw_response = await fetch(`http://bdjbt.12342234.xyz:3004/hanyuxinjie`, options);
+        let raw_response = await fetch(`https://hyxj-worker.yuanwan2021.workers.dev/hanyuxinjie`, options);
         let result = await raw_response.json();  // 解析 JSON
         let response ='';
         if (result.image) {
